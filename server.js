@@ -8,10 +8,10 @@ const sendError = require("./error");
 // Setting up common services 
 //
 const app = express();
+
 app.set("x-powered-by", false); // to mimic Cisco Spark headers
 app.set("etag", false); // to mimic Cisco Spark headers
-
-// authentication
+// Middleware to mimic Cisco Spark HTTP headers
 app.use(function (req, res, next) {
     res.setHeader("Cache-Control", "no-cache"); // to mimic Cisco Spark headers
 
@@ -19,14 +19,14 @@ app.use(function (req, res, next) {
     res.locals.trackingId = "EM_" + uuid();
     res.setHeader("Trackingid", res.locals.trackingId);
 
-    // Check authentication
-    const auth = req.get("Authorization");
-    if (!auth) {
-        return sendError(res, 401);
-    }
-
     next();
 });
+
+// Middleware to enforce authentication
+const authentication = require("./auth");
+app.use(authentication.middleware);
+// Extra service to dynamically create accounts
+//app.use("/accounts", authentication.router);
 
 
 //

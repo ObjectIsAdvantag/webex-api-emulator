@@ -56,7 +56,7 @@ router.post("/", function (req, res) {
         "type": type,
         "isLocked": false,
         "lastActivity": now,
-        "creatorId": "[TODO]",
+        "creatorId": res.locals.person.id,
         "created": now
     }
 
