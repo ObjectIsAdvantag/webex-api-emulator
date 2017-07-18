@@ -1,0 +1,19 @@
+{
+  "name": "spark-emulator",
+  "version": "0.1.0",
+  "description": "Emulator of Cisco Spark REST API",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ciscospark",
+    "emulator"
+  ],
+  "author": "Stève Sfartz",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "express": "^4.15.3"
+  }
+}
