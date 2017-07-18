@@ -19,16 +19,6 @@ var rooms = {};
 
 // Create a room
 router.post("/", function (req, res) {
-    res.setHeader("Cache-Control", "no-cache");
-
-    // New Trackingid
-    res.locals.trackingId = "EM_" + uuid();
-
-    // Check authentication
-    const auth = req.get("Authorization");
-    if (!auth) {
-        return sendError(res, 401);
-    }
 
     // Check Media type
     const media = req.get("Content-Type");
@@ -80,17 +70,6 @@ router.post("/", function (req, res) {
 
 // List rooms
 router.get("/", function (req, res) {
-    res.setHeader("Cache-Control", "no-cache");
-
-    // New Trackingid
-    res.locals.trackingId = "EM_" + uuid();
-    res.setHeader("Trackingid", res.locals.trackingId);
-
-    // Check authentication
-    const auth = req.get("Authorization");
-    if (!auth) {
-        return sendError(res, 401);
-    }
 
     // Return list of rooms ordered by lastActivity
     const list = Object.keys(rooms).map(function(key, index) {
@@ -99,7 +78,7 @@ router.get("/", function (req, res) {
         return (a.lastActivity < b.lastActivity);
     });
 
-    res.status(200).send(list);
+    res.status(200).send({ "items" : list });
 });
 
 module.exports = router;
