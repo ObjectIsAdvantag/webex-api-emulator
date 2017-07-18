@@ -7,7 +7,7 @@ const router = express.Router({ "caseSensitive": true, "strict": false });
 
 // for parsing application/json
 const bodyParser = require("body-parser");
-router.use(bodyParser.json()); 
+router.use(bodyParser.json());
 
 // Extra imports 
 const uuid = require('uuid/v4');
@@ -36,40 +36,25 @@ router.post("/", function (req, res) {
     if (!incoming) {
         return sendError(res, 400);
     }
-    if (!incoming.title || (typeof incoming.title != "string")) {
-        debug("missing title property in incoming payload");
-        return sendError(res, 400);
-    }
 
-    // Check room exists
+    // Check room is specified
     const roomId = incoming.roomId;
-    if (!roomId) {
+    if (!roomId || (typeof roomId != "string")) {
         debug("no room specified");
         return sendError(res, 400, "roomId cannot be null");
     }
-    var room = db.rooms[roomId];
-    if (!room) {
-        debug(`room not found for identifier: ${roomId}`);
-        // Note that I was expecting to return a 404 or 403, but, this is the current answer from Spark
-        return sendError(res, 502, "Add participant failed.");        
-    }
 
-    // Check a valid Spark user is specified
+    // Check a Spark user is specified
     const personEmail = incoming.personEmail;
     const personId = incoming.personId;
-    if (!personEmail && !personId)  {
+    if (!personEmail && !personId) {
         debug("no person specified, neither email nor id");
         return sendError(res, 400, "Must specify either personId or personEmail.");
     }
     if (personEmail) {
+        // [TODO] Retreive personId from PersonEmail
         debug("new membership with personEmail is not supported yet");
-        return sendError(res, 502, "[EMULATOR] new membership with personEmail is not supported yet");        
-    }
-    var person = db.people[personId];
-    if (!person) {
-        debug(`room not found for identifier: ${roomId}`);
-        // This is the current answer from Spark
-        return sendError(res, 400, "Expect base64 ID or UUID.");        
+        return sendError(res, 502, "[EMULATOR] new membership with personEmail is not supported yet");
     }
 
     // Default values
@@ -80,22 +65,28 @@ router.post("/", function (req, res) {
     }
 
     // Create membership
-    const now = new Date(Date.now()).toISOString();
-    var room = {
-        "id": base64.encode("ciscospark://em/ROOM/" + uuid()),
-        "title": incoming.title,
-        "type": type,
-        "isLocked": false,
-        "lastActivity": now,
-        "creatorId": res.locals.person.id,
-        "created": now
-    }
+    const db = req.app.locals.datastore;
+    db.memberships.create(res.locals.person, roomId, personId, isModerator, function (err, membership) {
+        if (!err) {
+            // Return payload
+            res.status(201).send(membership);
+        }
 
-    // Store room
-    rooms[room.id] = room;
-
-    // Return payload
-    res.status(201).send(room);
+        switch (err.code) {
+            case "ROOM_NOT_FOUND":
+                debug(`room not found for identifier: ${roomId}`);
+                // Note that I was expecting to return a 404 or 403, but, this is the current answer from Spark
+                return sendError(res, 502, "Add participant failed.");
+            case "PERSON_NOT_FOUND":
+                debug(`person not found`);
+                // This is the current answer from Spark
+                return sendError(res, 400, "Expect base64 ID or UUID.");
+            default:
+                debug("could not add membership for another reason");
+                // This is the current answer from Spark
+                return sendError(res, 400, "[EMULATOR] could not add membership");
+        }
+    });
 });
 
 
@@ -103,13 +94,13 @@ router.post("/", function (req, res) {
 router.get("/", function (req, res) {
 
     // Return list of memberships
-    const list = Object.keys(memberships).map(function(key, index) {
+    const list = Object.keys(memberships).map(function (key, index) {
         return memberships[key];
-    }).sort(function(a, b) {
+    }).sort(function (a, b) {
         return (a.roomId > b.roomId);
     });
 
-    res.status(200).send({ "items" : list });
+    res.status(200).send({ "items": list });
 });
 
 
