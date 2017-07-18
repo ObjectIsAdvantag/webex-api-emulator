@@ -14,8 +14,6 @@ const uuid = require('uuid/v4');
 const base64 = require('base-64');
 const sendError = require('./error');
 
-// Data store
-var memberships = {};
 
 // Create a membership
 router.post("/", function (req, res) {
@@ -69,7 +67,8 @@ router.post("/", function (req, res) {
     db.memberships.create(res.locals.person, roomId, personId, isModerator, function (err, membership) {
         if (!err) {
             // Return payload
-            return res.status(201).send(membership);
+            // Note that Cisco Spark returns 200 OK and not a 201 CREATED here
+            return res.status(200).send(membership);
         }
 
         switch (err.code) {

@@ -29,8 +29,12 @@ app.use(function (req, res, next) {
 // Middleware to enforce authentication
 const authentication = require("./auth");
 app.use(authentication.middleware);
-// Extra service to dynamically create accounts
-//app.use("/accounts", authentication.router);
+
+// Load initial list of accounts
+const accounts = Object.keys(authentication.tokens).map(function (item, index) {
+    return authentication.tokens[item];
+});
+datastore.people.init(accounts);
 
 
 //

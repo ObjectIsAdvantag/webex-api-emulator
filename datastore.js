@@ -10,6 +10,42 @@ const base64 = require('base-64');
 
 
 //
+// People
+//
+
+function PersonStorage(datastore) {
+    this.datastore = datastore;
+    this.people = {};
+}
+
+// Initialize the store with a list of prepared accounts
+PersonStorage.prototype.init = function (accounts) {
+    var self = this;
+    accounts.forEach(function (elem) {
+        self.people[elem.id] = elem;
+    });
+}
+
+PersonStorage.prototype.find = function (personId, cb) {
+
+    assert(personId);
+
+    const person = this.people[personId];
+    if (!person) {
+        debug(`could not find Person with id: ${personId}`);
+        if (cb) {
+            var err = new Error(`could not find Person with id: ${personId}`);
+            err.code = "PERSON_NOT_FOUND";
+            cb(err, null);
+            return;
+        }
+    }
+
+    cb(null, person);
+}
+
+
+//
 // Rooms
 //
 
@@ -38,6 +74,9 @@ RoomStorage.prototype.create = function (person, title, type) {
 
     // Store room
     this.rooms[room.id] = room;
+
+    // Add creator to rom members
+    this.datastore.memberships._add(person.id, room.id, person);
 
     return room;
 }
@@ -107,12 +146,12 @@ MembershipStorage.prototype.create = function (actor, roomId, newMemberId, isMod
     var foundNewMember = false;
     Object.keys(this.memberships).map(function (key, index) {
         var elem = self.memberships[key];
-        if (elem.id == roomId) {
-            if(elem.personId == actor.id) {
+        if (elem.roomId == roomId) {
+            if (elem.personId == actor.id) {
                 fine(`createMEmbership: found actor in room: ${roomId}`);
                 foundActor = true;
             }
-            if(elem.personId == newMemberId) {
+            if (elem.personId == newMemberId) {
                 fine(`createMEmbership: found new member in room: ${roomId}`);
                 foundNewMember = true;
             }
@@ -125,7 +164,7 @@ MembershipStorage.prototype.create = function (actor, roomId, newMemberId, isMod
         if (cb) {
             var err = new Error("cannot create membership in a room the actor is not part of");
             err.code = "NOT_A_MEMBER";
-            cb (err, null);
+            cb(err, null);
         }
         return;
     }
@@ -135,23 +174,40 @@ MembershipStorage.prototype.create = function (actor, roomId, newMemberId, isMod
         if (cb) {
             var err = new Error("participant is already a member of the room");
             err.code = "ALREADY_A_MEMBER";
-            cb (err, null);
+            cb(err, null);
         }
         return;
     }
 
     // Retreive detailed person info
-    const personDetails = this.datastore.people[newMemberId];
-    if (!personDetails) {
-        debug(`details not found for person: ${newMemberId}`);
-        if (cb) {
-            var err = new Error("details not found for specified person");
-            err.code = "PERSON_NOT_FOUND";
-            cb (err, null);
+    this.datastore.people.find(newMemberId, function (err, person) {
+        if (err) {
+            debug(`details not found for person: ${newMemberId}`);
+            if (cb) {
+                var err2 = new Error("details not found for specified person");
+                err2.code = "PERSON_NOT_FOUND";
+                cb(err2, null);
+            }
+            return;
         }
-        return;
-    }
-    
+
+        // Create membership
+        var membership = self.datastore.memberships._add(actor.id, roomId, person);
+
+        // Invoke callback
+        if (cb) {
+            cb(null, membership);
+        }
+    });
+}
+
+
+MembershipStorage.prototype._add = function (actorId, roomId, newMember) {
+
+    assert.ok(actorId);
+    assert.ok(roomId);
+    assert.ok(newMember);
+
     // Create membership
     const now = new Date(Date.now()).toISOString();
     var membership = {
@@ -172,10 +228,7 @@ MembershipStorage.prototype.create = function (actor, roomId, newMemberId, isMod
     // Fire event
     // [TODO]
 
-    // Invoke callback
-    if (cb) {
-        cb(null, membership);
-    }
+    return membership;
 }
 
 
@@ -203,16 +256,14 @@ MembershipStorage.prototype.list = function (actor, cb) {
 
     assert.ok(actor);
 
+    var list = [];
     var self = this;
-    const list = Object.keys(this.memberships).map(function (key, index) {
-        var elem = self.memberships[key];
-        if (actor.id == elem.personId) {
-            return elem;
+    Object.keys(this.memberships).forEach(function (elem) {
+        var membership = self.memberships[elem];
+        if (actor.id == membership.personId) {
+            list.push(membership);
         }
-    }).sort(function (a, b) {
-        return (a.roomId > b.roomId);
     });
-
 
     if (cb) {
         cb(null, list);
@@ -268,4 +319,6 @@ MembershipStorage.prototype.find = function (actor, membershipId, cb) {
 var datastore = {};
 datastore.rooms = new RoomStorage(datastore);
 datastore.memberships = new MembershipStorage(datastore);
+datastore.people = new PersonStorage(datastore);
+
 module.exports = datastore;

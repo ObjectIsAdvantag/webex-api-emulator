@@ -32,11 +32,9 @@ authentication.middleware = function (req, res, next) {
         debug("No account found for token: " + token);
         return sendError(res, 401);
     }
-    res.locals.person = account;
 
-    // Update user activity
-    account.lastActivity = new Date(Date.now()).toISOString();
-    tokens[token] = account;
+    // Add person to request context
+    res.locals.person = account;
 
     next();
 }

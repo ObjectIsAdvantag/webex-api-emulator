@@ -51,7 +51,8 @@ router.post("/", function (req, res) {
     const room = db.rooms.create(res.locals.person, incoming.title, type);
 
     // Return payload
-    res.status(201).send(room);
+    // Note that Cisco Spark returns 200 OK and not a 201 CREATED here
+    res.status(200).send(room);
 });
 
 
