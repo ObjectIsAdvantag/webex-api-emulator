@@ -14,12 +14,15 @@ app.use(router);
 
 router.use(bodyParser.json()); // for parsing application/json
 
-// [TODO] Add 'Trackingid' header
+// 'Trackingid' header
+const uuidv1 = require('uuid/v1');
 
 //
 // Rooms resource
 //
 router.post("/rooms", function (req, res) {
+    // New Trackingid
+    res.context = { "uuid": "EM_" + uuidv1() };
 
     // Check authentication
     const auth = req.get("Authorization");

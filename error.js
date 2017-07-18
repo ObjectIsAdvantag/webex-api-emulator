@@ -29,7 +29,7 @@ function sendError(res, statusCode, message, error) {
                     "description": message
                 }
             ],
-            "trackingId": "[TODO]"
+            "trackingId": res.context.uuid
         });
         return;
     }
@@ -43,7 +43,7 @@ function sendError(res, statusCode, message, error) {
                         "description": error
                     }
                 ],
-                "trackingId": "[TODO]"
+                "trackingId": res.context.uuid
             });
             return;
 
@@ -51,7 +51,7 @@ function sendError(res, statusCode, message, error) {
             res.status(statusCode).send({
                 "message": message,
                 "errors": error,
-                "trackingId": "[TODO]"
+                "trackingId": res.context.uuid
             });
             return;
 
@@ -59,7 +59,7 @@ function sendError(res, statusCode, message, error) {
 
     // Should not happen
     debug("implementation issue 'Should not happen' in sendError");
-    sendError(500);
+    sendError(res, 501, "[Emulator] implementation issue 'Should not happen' in sendError");
 }
 
 module.exports = sendError;
