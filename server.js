@@ -14,15 +14,18 @@ app.use(router);
 
 router.use(bodyParser.json()); // for parsing application/json
 
-// 'Trackingid' header
-const uuidv1 = require('uuid/v1');
+
+// Extra imports 
+const uuid = require('uuid/v4');
+const base64 = require('base-64');
 
 //
 // Rooms resource
 //
+var rooms = {};
 router.post("/rooms", function (req, res) {
     // New Trackingid
-    res.context = { "uuid": "EM_" + uuidv1() };
+    res.context = { "uuid": "EM_" + uuid() };
 
     // Check authentication
     const auth = req.get("Authorization");
@@ -51,10 +54,50 @@ router.post("/rooms", function (req, res) {
         return sendError(res, 400);
     }
 
+    // Default values
+    const type = incoming.type ? incoming.type : "group";
+    if ((type !== "direct") && (type !== "group")) {
+        debug(`not supported room type: ${type}`);
+        return sendError(res, 400);
+    }
+
     // Create room
+    const now = new Date(Date.now()).toISOString();
+    var room = {
+        "id": base64.encode("ciscospark://em/ROOM/" + uuid()),
+        "title": incoming.title,
+        "type": type,
+        "isLocked": false,
+        "lastActivity": now,
+        "creatorId": "[TODO]",
+        "created": now
+    }
+
+    // Store room
+    rooms[room.id] = room;
 
     // Return payload
-    res.status(201).send();
+    res.status(201).send(room);
+});
+
+router.get("/rooms", function (req, res) {
+    // New Trackingid
+    res.context = { "uuid": "EM_" + uuid() };
+
+    // Check authentication
+    const auth = req.get("Authorization");
+    if (!auth) {
+        return sendError(res, 401);
+    }
+
+    // Return list of rooms ordered by lastActivity
+    const list = Object.keys(rooms).map(function(key, index) {
+        return rooms[key];
+    }).sort(function(a, b) {
+        return (a.lastActivity < b.lastActivity);
+    });
+
+    res.status(200).send(list);
 });
 
 

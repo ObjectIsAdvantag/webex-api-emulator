@@ -13,6 +13,7 @@
   "author": "Stève Sfartz",
   "license": "MIT",
   "dependencies": {
+    "base-64": "^0.1.0",
     "body-parser": "^1.17.2",
     "express": "^4.15.3",
     "uuid": "^3.1.0"
