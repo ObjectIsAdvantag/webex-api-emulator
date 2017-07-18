@@ -7,7 +7,7 @@ The primary goal of the emulator is to provide a safe place to test bots.
 Therefore, the emulator mimics Cisco Spark REST API behavior for /rooms, /messages, /memberships and /webhooks resources, 
 and allows you to create bot accounts dynamically.
 
-The following features are not implemented: Room moderation, Teams, Pagination, Filtering, Activity Status.
+The following features are not implemented: Room moderation, Teams, Pagination, Filtering, Activity Status, Automatic Invitations (if non Spark users are added to rooms).
 
 
 ## Quickstart

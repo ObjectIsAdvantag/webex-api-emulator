@@ -7,15 +7,13 @@ const router = express.Router({ "caseSensitive": true, "strict": false });
 
 // for parsing application/json
 const bodyParser = require("body-parser");
-router.use(bodyParser.json()); 
+router.use(bodyParser.json());
 
 // Extra imports 
 const uuid = require('uuid/v4');
 const base64 = require('base-64');
 const sendError = require('./error');
 
-// Data store
-var rooms = {};
 
 // Create a room
 router.post("/", function (req, res) {
@@ -49,19 +47,8 @@ router.post("/", function (req, res) {
     }
 
     // Create room
-    const now = new Date(Date.now()).toISOString();
-    var room = {
-        "id": base64.encode("ciscospark://em/ROOM/" + uuid()),
-        "title": incoming.title,
-        "type": type,
-        "isLocked": false,
-        "lastActivity": now,
-        "creatorId": res.locals.person.id,
-        "created": now
-    }
-
-    // Store room
-    rooms[room.id] = room;
+    const db = req.app.locals.datastore;
+    const room = db.rooms.create(res.locals.person, incoming.title, type);
 
     // Return payload
     res.status(201).send(room);
@@ -71,14 +58,12 @@ router.post("/", function (req, res) {
 // List rooms
 router.get("/", function (req, res) {
 
-    // Return list of rooms ordered by lastActivity
-    const list = Object.keys(rooms).map(function(key, index) {
-        return rooms[key];
-    }).sort(function(a, b) {
-        return (a.lastActivity < b.lastActivity);
-    });
+    // Fetch list of rooms for current user
+    const db = req.app.locals.datastore;
+    const list = db.rooms.list(res.locals.person);
 
-    res.status(200).send({ "items" : list });
+    res.status(200).send({ "items": list });
 });
+
 
 module.exports = router;

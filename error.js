@@ -8,7 +8,7 @@
 //     ],
 //     "trackingId": "NA_982ba0e9-a1a7-4eff-9be5-c6e5cdf94d73"
 // }
-const assert = require('assert');
+const assert = require("assert");
 function sendError(res, statusCode, message, error) {
     assert.ok((res), "no response specified");
     assert.ok((statusCode), "no statusCode specified");

@@ -9,6 +9,10 @@ const sendError = require("./error");
 //
 const app = express();
 
+// Inject datastore
+const datastore = require("./datastore");
+app.locals.datastore = datastore;
+
 app.set("x-powered-by", false); // to mimic Cisco Spark headers
 app.set("etag", false); // to mimic Cisco Spark headers
 // Middleware to mimic Cisco Spark HTTP headers
@@ -36,12 +40,13 @@ const people = require("./people");
 app.use("/people", people);
 const rooms = require("./rooms");
 app.use("/rooms", rooms);
-
+const memberships = require("./memberships");
+app.use("/memberships", memberships);
 
 //
 // Starting server
 //
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3210;
 app.locals.started = new Date(Date.now()).toISOString();
 app.listen(port, function () {
     debug(`Emulator started on port: ${port}`);
