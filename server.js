@@ -2,13 +2,16 @@
 const debug = require("debug")("emulator");
 const express = require("express");
 const app = express();
+app.locals.started = new Date(Date.now()).toISOString();
+app.set("x-powered-by", false);
+app.set("etag", false);
 
 
 //
 // Loading services
 //
 const rooms = require("./rooms");
-app.use(rooms);
+app.use("/rooms", rooms);
 
 
 //

@@ -18,9 +18,11 @@ const sendError = require('./error');
 var rooms = {};
 
 // Create a room
-router.post("/rooms", function (req, res) {
+router.post("/", function (req, res) {
+    res.setHeader("Cache-Control", "no-cache");
+
     // New Trackingid
-    res.context = { "uuid": "EM_" + uuid() };
+    res.locals.trackingId = "EM_" + uuid();
 
     // Check authentication
     const auth = req.get("Authorization");
@@ -75,10 +77,14 @@ router.post("/rooms", function (req, res) {
     res.status(201).send(room);
 });
 
+
 // List rooms
-router.get("/rooms", function (req, res) {
+router.get("/", function (req, res) {
+    res.setHeader("Cache-Control", "no-cache");
+
     // New Trackingid
-    res.context = { "uuid": "EM_" + uuid() };
+    res.locals.trackingId = "EM_" + uuid();
+    res.setHeader("Trackingid", res.locals.trackingId);
 
     // Check authentication
     const auth = req.get("Authorization");
