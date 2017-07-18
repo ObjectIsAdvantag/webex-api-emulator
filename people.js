@@ -43,4 +43,18 @@ router.get("/", function (req, res) {
     res.status(200).send({ "items" : list });
 });
 
+// Show current user
+router.get("/me", function (req, res) {
+
+    const personId = res.locals.person.id;
+    const person = accounts[personId];
+    if (!person) {
+        debug(`unexpected error, cannot retrieve account info for personId: ${personId}`);
+        return res.sendError("500", "[EMULATOR] unexpected error, cannot retrieve account info");
+    }
+
+    res.status(200).send(person);
+});
+
+
 module.exports = router;
