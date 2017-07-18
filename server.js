@@ -32,6 +32,8 @@ app.use(authentication.middleware);
 //
 // Loading services
 //
+const people = require("./people");
+app.use("/people", people);
 const rooms = require("./rooms");
 app.use("/rooms", rooms);
 

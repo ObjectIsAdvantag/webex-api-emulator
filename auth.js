@@ -1,11 +1,15 @@
 
 const debug = require("debug")("emulator:auth");
 const sendError = require("./error");
-    
+
 const authentication = {};
 
 // Load pre-registered tokens
 var tokens = require('./tokens.json');
+if (!tokens) {
+    tokens = {};
+}
+authentication.tokens = tokens;
 
 authentication.middleware = function (req, res, next) {
     // Check authentication
