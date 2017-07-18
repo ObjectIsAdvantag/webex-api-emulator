@@ -17,7 +17,7 @@ const sendError = require('./error');
 // Data store
 var memberships = {};
 
-// Create a room
+// Create a membership
 router.post("/", function (req, res) {
 
     // Check Media type
@@ -58,7 +58,7 @@ router.post("/", function (req, res) {
     }
 
     // Default values
-    const isModerator = incoming.isModerator ? incoming.isModerator : "false";
+    var isModerator = incoming.isModerator ? incoming.isModerator : false;
     if (isModerator) {
         debug("WARNING: moderation is not currently supported by the emumlator, ignoring...");
         isModerator = false;
@@ -69,14 +69,18 @@ router.post("/", function (req, res) {
     db.memberships.create(res.locals.person, roomId, personId, isModerator, function (err, membership) {
         if (!err) {
             // Return payload
-            res.status(201).send(membership);
+            return res.status(201).send(membership);
         }
 
         switch (err.code) {
-            case "ROOM_NOT_FOUND":
+            case "NOT_A_MEMBER":
                 debug(`room not found for identifier: ${roomId}`);
                 // Note that I was expecting to return a 404 or 403, but, this is the current answer from Spark
                 return sendError(res, 502, "Add participant failed.");
+            case "ALREADY_A_MEMBER":
+                debug(`person: ${personId} is already a member of room: ${roomId}`);
+                // Note that I was expecting to return a 404 or 403, but, this is the current answer from Spark
+                return sendError(res, 409, "Person is already in the room.");
             case "PERSON_NOT_FOUND":
                 debug(`person not found`);
                 // This is the current answer from Spark
@@ -90,18 +94,43 @@ router.post("/", function (req, res) {
 });
 
 
-// List rooms
+// List memberships
 router.get("/", function (req, res) {
 
-    // Return list of memberships
-    const list = Object.keys(memberships).map(function (key, index) {
-        return memberships[key];
-    }).sort(function (a, b) {
-        return (a.roomId > b.roomId);
-    });
+    const db = req.app.locals.datastore;
+    db.memberships.list(res.locals.person, function (err, list) {
+        if (!err) {
+            return res.status(200).send({ "items": list });
+        }
 
-    res.status(200).send({ "items": list });
+        debug("[EMULATOR] Unexpected error");
+        res.status(500).send("[EMULATOR] Unexpected error");
+    });
 });
+
+
+// Get memberships details
+router.get("/:id", function (req, res) {
+
+    const membershipId = req.params.id;
+
+    const db = req.app.locals.datastore;
+    db.memberships.find(res.locals.person, membershipId, function (err, membership) {
+        if (!err) {
+            return res.status(200).send(membership);
+        }
+
+        switch (err.code) {
+            case "MEMBERSHIP_NOT_FOUND":
+                debug("Failed to get membership");
+                return res.status(404).send("Failed to get membership");
+            default:
+                debug("[EMULATOR] Unexpected error");
+                return res.status(500).send("[EMULATOR] Unexpected error");
+        }
+    });
+});
+
 
 
 module.exports = router;
