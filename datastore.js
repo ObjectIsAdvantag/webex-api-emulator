@@ -285,27 +285,29 @@ MembershipStorage.prototype.find = function (actor, membershipId, cb) {
             err.code = "MEMBERSHIP_NOT_FOUND";
             cb(err, null);
         }
+        return;
     }
 
     // Check the user is part of the room
     var self = this;
-    const memberships = Object.keys(this.memberships).map(function (key, index) {
+    var found = false;
+    Object.keys(this.memberships).forEach(function (key) {
         var elem = self.memberships[key];
         if (membership.roomId == elem.roomId) {
             if (actor.id == elem.personId) {
-                return elem;
+                found = true;
             }
         }
     });
-    if (memberships.lenght == 1) {
+    if (found) {
         if (cb) {
-            cb(null, memberships[0]);
+            cb(null, membership);
         }
         return;
     }
 
-    var err = new Error(`membership found but the user is not part of the room with id: ${membership.roomId}`);
-    err.code = "MEMBERSHIP_NOT_FOUND";
+    var err = new Error(`membership found but the user: ${actor.id} is not part of room: ${membership.roomId}`);
+    err.code = "NOT_MEMBER_OF_ROOM";
     if (cb) {
         cb(err, null);
     }

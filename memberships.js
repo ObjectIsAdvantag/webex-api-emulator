@@ -108,6 +108,7 @@ router.get("/", function (req, res) {
 });
 
 
+
 // Get memberships details
 router.get("/:id", function (req, res) {
 
@@ -121,6 +122,7 @@ router.get("/:id", function (req, res) {
 
         switch (err.code) {
             case "MEMBERSHIP_NOT_FOUND":
+            case "NOT_MEMBER_OF_ROOM":
                 debug("Failed to get membership");
                 return res.status(404).send("Failed to get membership");
             default:
