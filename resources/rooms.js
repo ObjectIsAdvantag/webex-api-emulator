@@ -12,8 +12,8 @@ router.use(bodyParser.json());
 // Extra imports 
 const uuid = require('uuid/v4');
 const base64 = require('base-64');
-const sendError = require('./utils').sendError;
-const sendSuccess = require('./utils').sendSuccess;
+const sendError = require('../utils').sendError;
+const sendSuccess = require('../utils').sendSuccess;
 
 
 // Create a room

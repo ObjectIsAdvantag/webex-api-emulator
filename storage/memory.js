@@ -1,5 +1,3 @@
-
-
 const debug = require("debug")("emulator:datastore");
 const fine = require("debug")("emulator:datastore");
 const assert = require("assert")

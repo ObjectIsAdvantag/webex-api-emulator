@@ -10,7 +10,7 @@ const uuid = require('uuid/v4');
 const app = express();
 
 // Inject datastore
-const datastore = require("./datastore");
+const datastore = require("./storage/memory");
 app.locals.datastore = datastore;
 
 app.set("x-powered-by", false); // to mimic Cisco Spark headers
@@ -40,11 +40,11 @@ datastore.people.init(accounts);
 //
 // Loading services
 //
-const people = require("./people");
+const people = require("./resources/people");
 app.use("/people", people);
-const rooms = require("./rooms");
+const rooms = require("./resources/rooms");
 app.use("/rooms", rooms);
-const memberships = require("./memberships");
+const memberships = require("./resources/memberships");
 app.use("/memberships", memberships);
 
 //

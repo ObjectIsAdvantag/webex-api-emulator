@@ -10,8 +10,8 @@ const bodyParser = require("body-parser");
 router.use(bodyParser.json()); 
     
 // Extra imports 
-const sendError = require('./utils').sendError;
-const sendSuccess = require('./utils').sendSuccess;
+const sendError = require('../utils').sendError;
+const sendSuccess = require('../utils').sendSuccess;
 
 
 // List people
