@@ -143,7 +143,7 @@ MembershipStorage.prototype.listMembershipsForRoom = function (actor, roomId, cb
     list = list.sort(function (a, b) {
         return (a.created < b.created);
     });
-    
+
     if (cb) {
         cb(null, list);
     }
@@ -202,17 +202,67 @@ MembershipStorage.prototype.find = function (actor, membershipId, cb) {
             }
         }
     });
-    if (found) {
+    if (!found) {
+        var err = new Error(`membership found but the user: ${actor.id} is not part of room: ${membership.roomId}`);
+        err.code = "NOT_MEMBER_OF_ROOM";
         if (cb) {
-            cb(null, membership);
+            cb(err, null);
         }
         return;
     }
 
-    var err = new Error(`membership found but the user: ${actor.id} is not part of room: ${membership.roomId}`);
-    err.code = "NOT_MEMBER_OF_ROOM";
     if (cb) {
-        cb(err, null);
+        cb(null, membership);
+    }
+}
+
+
+// Deletes a membership if the user is part of the room and it exists
+MembershipStorage.prototype.delete = function (actor, membershipId, cb) {
+
+    assert.ok(actor);
+    assert.ok(membershipId);
+
+    // Check membership exists
+    const membership = this.data[membershipId];
+    if (!membership) {
+        debug(`membership does not exists with id: ${membershipId}`);
+        if (cb) {
+            var err = new Error(`membership does not exists with id: ${membershipId}`);
+            err.code = "MEMBERSHIP_NOT_FOUND";
+            cb(err, null);
+        }
+        return;
+    }
+
+    // Check the user is part of the room
+    var self = this;
+    var found = false;
+    Object.keys(this.data).forEach(function (key) {
+        var elem = self.data[key];
+        if (membership.roomId == elem.roomId) {
+            if (actor.id == elem.personId) {
+                found = true;
+            }
+        }
+    });
+    if (!found) {
+        var err = new Error(`membership found but the user: ${actor.id} is not part of room: ${membership.roomId}`);
+        err.code = "NOT_MEMBER_OF_ROOM";
+        if (cb) {
+            cb(err, null);
+        }
+        return;
+    }
+
+    // Delete membership as the user is part of the room
+    // GOOD TO KNOW: Note we do not need to check for Moderation as it is not proposed
+    delete (this.data[membershipId]);
+
+    // [TODO] Fire event
+
+    if (cb) {
+        cb(null, membership);
     }
 }
 

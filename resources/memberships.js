@@ -181,19 +181,45 @@ router.get("/:id", function (req, res) {
 
     const membershipId = req.params.id;
     db.memberships.find(actor, membershipId, function (err, membership) {
-        if (!err) {
-            return sendSuccess(res, 200, membership);
+        if (err) {
+            switch (err.code) {
+                case "MEMBERSHIP_NOT_FOUND":
+                case "NOT_MEMBER_OF_ROOM":
+                    debug("Failed to get membership");
+                    return sendError(res, 404, "Failed to get membership");
+                default:
+                    debug("[EMULATOR] Unexpected error");
+                    return sendError(res, 500, "[EMULATOR] Unexpected error");
+            }
         }
 
-        switch (err.code) {
-            case "MEMBERSHIP_NOT_FOUND":
-            case "NOT_MEMBER_OF_ROOM":
-                debug("Failed to get membership");
-                return sendError(res, 404, "Failed to get membership");
-            default:
-                debug("[EMULATOR] Unexpected error");
-                return sendError(res, 500, "[EMULATOR] Unexpected error");
+        return sendSuccess(res, 200, membership);
+    });
+});
+
+
+// Delete a membership
+router.delete("/:id", function (req, res) {
+    const db = req.app.locals.datastore;
+    const actor = res.locals.person;
+
+    const membershipId = req.params.id;
+    db.memberships.delete(actor, membershipId, function (err, membership) {
+        if (err) {
+            switch (err.code) {
+                case "MEMBERSHIP_NOT_FOUND":
+                    debug("Failed to leave room.");
+                    return sendError(res, 400, "Failed to leave room.");
+                case "NOT_MEMBER_OF_ROOM":
+                    debug("User is not a participant of the room.");
+                    return sendError(res, 404, "User is not a participant of the room.");
+                default:
+                    debug("[EMULATOR] Unexpected error");
+                    return sendError(res, 500, "[EMULATOR] Unexpected error");
+            }
         }
+
+        return sendSuccess(res, 204);
     });
 });
 
