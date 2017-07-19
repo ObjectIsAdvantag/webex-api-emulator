@@ -6,7 +6,7 @@ The primary goal of the emulator is to tests Cisco Spark chat bots.
 Therefore, the emulator mimics Cisco Spark REST API behavior for /rooms, /messages, /memberships and /webhooks resources, 
 and also allows you to inject User and Bots counts.
 
-The following features are not implemented: Administration APIs, Room moderation, People LastActivity & Status and Teams, as weel as Automatic Invitations (if non Spark users are added to rooms) and Pagination / Filtering.
+The following features are NOT implemented: Messages Attachements, Room moderation, People LastActivity & Status and Pagination, as well as Teams, Automatic Invitations (if non Spark users are added to rooms) and Administration APIs, 
 
 
 ## Quickstart

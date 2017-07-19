@@ -149,6 +149,7 @@ MembershipStorage.prototype.listMembershipsForRoom = function (actor, roomId, cb
     }
 }
 
+
 MembershipStorage.prototype.listUserMemberships = function (actor, cb) {
 
     assert.ok(actor);
