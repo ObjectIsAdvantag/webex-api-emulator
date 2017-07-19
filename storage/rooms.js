@@ -9,7 +9,7 @@ function RoomStorage(datastore) {
     this.data = {};
 }
 
-RoomStorage.prototype.create = function (person, title, type) {
+RoomStorage.prototype.create = function (person, title, type, cb) {
 
     assert.ok(person);
     assert.ok(title);
@@ -33,26 +33,56 @@ RoomStorage.prototype.create = function (person, title, type) {
     // Add creator to rom members
     this.datastore.memberships._add(person.id, room.id, person);
 
-    return room;
+    if (cb) {
+        cb(null, room);
+    }
 }
 
 
-RoomStorage.prototype.list = function (person) {
+RoomStorage.prototype.list = function (person, cb) {
 
     assert.ok(person);
 
-    // Retreive the memberships of the user
-    // [TODO]  
+    // DEPRECATED: We need to filter out the rooms the person is not part of
+    // var self = this;
+    // const list = Object.keys(this.data).map(function (key, index) {
+    //     return self.data[key];
+    // }).sort(function (a, b) {
+    //     return (a.lastActivity < b.lastActivity);
+    // });
 
-    // Filter out the rooms the 
-    var self = this;
-    const list = Object.keys(this.data).map(function (key, index) {
-        return self.data[key];
-    }).sort(function (a, b) {
+    // 
+    this.listMyRooms(person, cb);
+}
+
+
+// Filters out the rooms the person is not part of
+RoomStorage.prototype.listMyRooms = function (person, cb) {
+
+    assert.ok(person);
+
+    // List user memberships
+    const self = this;
+    this.datastore.memberships.listUserMemberships(person, function(err, memberships) {
+        if (err) {
+            debug("unpected err: " + err.message);
+            if (cb) {
+                cb(err, null);
+            }
+            return;
+        }
+
+        // Create a list of rooms for the user memberships
+        var rooms = memberships.map(function(elem, index) {
+            return self.data[elem.roomId];
+        }).sort(function (a, b) {
         return (a.lastActivity < b.lastActivity);
-    });
+        });
 
-    return list;
+        if (cb) {
+            return cb(null, rooms);
+        }
+    });
 }
 
 

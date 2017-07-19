@@ -59,7 +59,7 @@ MembershipStorage.prototype.create = function (actor, roomId, newMemberId, isMod
     }
 
     // Retreive detailed person info
-    this.datastore.people.find(newMemberId, function (err, person) {
+    this.datastore.people.find(actor, newMemberId, function (err, person) {
         if (err) {
             debug(`details not found for person: ${newMemberId}`);
             if (cb) {
@@ -130,7 +130,7 @@ MembershipStorage.prototype.listMembershipsForRoom = function (actor, roomId, cb
     });
 
     if (!found) {
-        var err = new Error(`membership found but the user: ${actor.id} is not part of room: ${membership.roomId}`);
+        var err = new Error(`membership found but the user: ${actor.id} is not part of room: ${roomId}`);
         err.code = "NOT_MEMBER_OF_ROOM";
         if (cb) {
             cb(err, null);

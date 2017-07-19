@@ -16,6 +16,7 @@ const sendSuccess = require('../utils').sendSuccess;
 
 // Create a room
 router.post("/", function (req, res) {
+    const db = req.app.locals.datastore;
 
     // Check Media type
     const media = req.get("Content-Type");
@@ -46,23 +47,34 @@ router.post("/", function (req, res) {
     }
 
     // Create room
-    const db = req.app.locals.datastore;
-    const room = db.rooms.create(res.locals.person, incoming.title, type);
+    db.rooms.create(res.locals.person, incoming.title, type, function (err, room) {
+        if (err) {
+            debug("unexpected error: " + err.message);
+            sendError(res, 500, "[EMULATOR] cannot create room, unexpected error");
+            return;
+        }
 
-    // Return payload
-    // Note that Cisco Spark returns 200 OK and not a 201 CREATED here
-    return sendSuccess(res, 200, room);
+        // Return payload
+        // Note that Cisco Spark returns 200 OK and not a 201 CREATED here
+        return sendSuccess(res, 200, room);
+    });
 });
 
 
 // List rooms
 router.get("/", function (req, res) {
+    const db = req.app.locals.datastore;
 
     // Fetch list of rooms for current user
-    const db = req.app.locals.datastore;
-    const list = db.rooms.list(res.locals.person);
+    db.rooms.list(res.locals.person, function (err, rooms) {
+        if (err) {
+            debug("unexpected error: " + err.message);
+            sendError(res, 500, "[EMULATOR] cannot list rooms, unexpected error");
+            return;
+        }
 
-    return sendSuccess(res, 200, { "items": list });
+        sendSuccess(res, 200, { "items": rooms });
+    });
 });
 
 

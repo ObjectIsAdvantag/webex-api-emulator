@@ -22,10 +22,10 @@ router.get("/", function (req, res) {
 
 // Show current user
 router.get("/me", function (req, res) {
-
-    const personId = res.locals.person.id;
     const db = req.app.locals.datastore;
-    db.people.find(personId, function (err, person) {
+    const personId = res.locals.person;
+    
+    db.people.find(person, personId, function (err, person) {
         if (!err) {
             return sendSuccess(res, 200, person);
         }

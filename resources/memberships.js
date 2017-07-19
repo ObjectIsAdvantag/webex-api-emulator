@@ -12,8 +12,11 @@ router.use(bodyParser.json());
 const sendError = require('../utils').sendError;
 const sendSuccess = require('../utils').sendSuccess;
 
+//
 // Create a membership
+//
 router.post("/", function (req, res) {
+    const db = req.app.locals.datastore;
 
     // Check Media type
     const media = req.get("Content-Type");
@@ -41,26 +44,31 @@ router.post("/", function (req, res) {
 
     // Check a Spark user is specified
     const personEmail = incoming.personEmail;
-    const personId = incoming.personId;
+    var personId = incoming.personId;
     if (!personEmail && !personId) {
         debug("no person specified, neither email nor id");
         return sendError(res, 400, "Must specify either personId or personEmail.");
     }
-    if (personEmail) {
-        // [TODO] Retreive personId from PersonEmail
-        debug("new membership with personEmail is not supported yet");
-        return sendError(res, 502, "[EMULATOR] new membership with personEmail is not supported yet");
-    }
-
     // Default values
     var isModerator = incoming.isModerator ? incoming.isModerator : false;
     if (isModerator) {
         debug("WARNING: moderation is not currently supported by the emumlator, ignoring...");
         isModerator = false;
     }
+    
+    if (personEmail) {
+        // [TODO] Retreive personId from PersonEmail
+        db.people.findWithEmail(res.locals.person, personEmail, function(err, person) {
+            if (err) {
+                debug(`person not found with email: ${personEmail}`);
+                return sendError(500, `[EMULATOR] unexpected error, person not found with email: ${personEmail}`)
+            }
+
+            personId = person.id;
+        });
+    }
 
     // Create membership
-    const db = req.app.locals.datastore;
     db.memberships.create(res.locals.person, roomId, personId, isModerator, function (err, membership) {
         if (!err) {
             // Return payload
@@ -128,10 +136,9 @@ router.get("/", function (req, res) {
 
 // Get memberships details
 router.get("/:id", function (req, res) {
-
+    const db = req.app.locals.datastore;
     const membershipId = req.params.id;
 
-    const db = req.app.locals.datastore;
     db.memberships.find(res.locals.person, membershipId, function (err, membership) {
         if (!err) {
             return sendSuccess(res, 200, membership);

@@ -17,8 +17,9 @@ PersonStorage.prototype.init = function (accounts) {
     });
 }
 
-PersonStorage.prototype.find = function (personId, cb) {
+PersonStorage.prototype.find = function (actor, personId, cb) {
 
+    assert(actor);
     assert(personId);
 
     const person = this.data[personId];
@@ -32,7 +33,30 @@ PersonStorage.prototype.find = function (personId, cb) {
         }
     }
 
-    cb(null, person);
+    if (cb) {
+        cb(null, person);
+    }
+}
+
+PersonStorage.prototype.findWithEmail = function (actor, personEmail, cb) {
+
+    assert(actor);
+    assert(personId);
+
+    const person = this.data[personId];
+    if (!person) {
+        debug(`could not find Person with id: ${personId}`);
+        if (cb) {
+            var err = new Error(`could not find Person with id: ${personId}`);
+            err.code = "PERSON_NOT_FOUND";
+            cb(err, null);
+            return;
+        }
+    }
+
+    if (cb) {
+        cb(null, person);
+    }
 }
 
 
