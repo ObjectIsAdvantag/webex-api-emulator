@@ -59,13 +59,14 @@ router.post("/", function (req, res) {
         db.rooms.find(actor, roomId, function (err, room) {
             if (err) {
                 switch (err.code) {
+                    case "USER_NOT_IN_ROOM":
                     case "ROOM_NOT_FOUND":
                         debug("Could not find a room with provided ID.");
                         sendError(res, 404, "Could not find a room with provided ID.");
                         return;
                     default:
                         debug("unexpected error: " + err.message);
-                        sendError(res, 500, "[EMULATOR] cannot create room, unexpected error");
+                        sendError(res, 500, "[EMULATOR] cannot create message, unexpected error");
                         return;
                 }
             }

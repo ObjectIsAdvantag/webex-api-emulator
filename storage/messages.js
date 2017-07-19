@@ -55,13 +55,15 @@ MessageStorage.prototype.listAllInRoom = function (actor, roomId, cb) {
 
             // List messages for room, order by created date DESC
             const self = this;
-            var messages = Object.keys(this.data).map(function (key, index) {
+            var messages = [];
+            Object.keys(this.data).forEach(function(key) {
                 let message = self.data[key];
                 if (message.roomId == roomId) {
-                    return message;
+                    messages.push(message);
                 }
-            })
-                .sort(function (a, b) {
+            });
+
+            messages.sort(function (a, b) {
                     return (a.created < b.created);
                 });
 
