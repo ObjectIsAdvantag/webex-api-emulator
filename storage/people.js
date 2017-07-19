@@ -41,21 +41,29 @@ PersonStorage.prototype.find = function (actor, personId, cb) {
 PersonStorage.prototype.findWithEmail = function (actor, personEmail, cb) {
 
     assert(actor);
-    assert(personId);
+    assert(personEmail);
 
-    const person = this.data[personId];
-    if (!person) {
-        debug(`could not find Person with id: ${personId}`);
+    var found = null;
+    var self = this;
+    Object.keys(this.data).forEach(function(key) {
+        var person = self.data[key];
+        if (person.emails[0] == personEmail) {
+            found = person;
+        }
+    });
+
+    if (!found) {
+        debug(`could not find Person with email: ${personEmail}`);
         if (cb) {
-            var err = new Error(`could not find Person with id: ${personId}`);
+            var err = new Error(`could not find Person with email: ${personEmail}`);
             err.code = "PERSON_NOT_FOUND";
             cb(err, null);
-            return;
         }
+        return;
     }
 
     if (cb) {
-        cb(null, person);
+        cb(null, found);
     }
 }
 

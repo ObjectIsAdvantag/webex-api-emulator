@@ -1,13 +1,12 @@
 # Emulator for Cisco Spark REST API
 
-The emulator 
 
-The primary goal of the emulator is to provide a safe place to test bots.
+The primary goal of the emulator is to tests Cisco Spark chat bots.
 
 Therefore, the emulator mimics Cisco Spark REST API behavior for /rooms, /messages, /memberships and /webhooks resources, 
-and allows you to create bot accounts dynamically.
+and also allows you to inject User and Bots counts.
 
-The following features are not implemented: Room moderation, Teams, People LastActivity & Status, Automatic Invitations (if non Spark users are added to rooms) and Pagination / Filtering.
+The following features are not implemented: Administration APIs, Room moderation, People LastActivity & Status and Teams, as weel as Automatic Invitations (if non Spark users are added to rooms) and Pagination / Filtering.
 
 
 ## Quickstart
@@ -15,8 +14,13 @@ The following features are not implemented: Room moderation, Teams, People LastA
 - [Optional] update file 'tokens.json' with the tokens you want the API to accept. Generally, you'll want your name, email and organisation id to be displayed in there. You can put random values in there, or pick the real value as stored in Cisco Spark by hitting the /people/me of the Cisco Spark API
 
 - Invoke the API with one of the tokens listed in 'tokens.json'
-   - GET /people/me
-   - POST /rooms
-   - POST /memberships
+   - GET  /people/me           shows spark account details
+   - POST /rooms               create a new room
+   - POST /rooms               create another room
+   - GET  /rooms               shows your rooms (2)
+   - POST /memberships         add a bot to the room
+   - POST /memberships         409 (conflict)
+   - GET  /memberships         show all your memberships
+   - GET  /memberships?room=   fetch memberships for you and your bot in current room
    - POST /messages
 

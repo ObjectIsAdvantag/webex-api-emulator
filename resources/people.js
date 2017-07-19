@@ -16,6 +16,24 @@ const sendSuccess = require('../utils').sendSuccess;
 
 // List people
 router.get("/", function (req, res) {
+    const db = req.app.locals.datastore;
+    const person = res.locals.person;
+
+    // Check email filter
+    const email = req.query.email;
+    if (email) {
+        db.people.findWithEmail(person, email, function (err, person) {
+            if (err) {
+                debug(`did not find any user with email: ${email}`)
+                return sendSuccess(res, 200, { items: [] });
+            }
+
+            return sendSuccess(res, 200, { items: [ person ] });
+        });
+        return;
+    }
+
+    //
     sendError(res, 400, "Email, displayName, or id list should be specified.");
 });
 
@@ -23,15 +41,15 @@ router.get("/", function (req, res) {
 // Show current user
 router.get("/me", function (req, res) {
     const db = req.app.locals.datastore;
-    const personId = res.locals.person;
+    const person = res.locals.person;
     
-    db.people.find(person, personId, function (err, person) {
+    db.people.find(person, person.id, function (err, person) {
         if (!err) {
             return sendSuccess(res, 200, person);
         }
 
         // [PENDING] handle error cases 
-        debug(`unexpected error, cannot retrieve account info for personId: ${personId}`);
+        debug(`unexpected error, cannot retrieve account info for person: ${person.id}`);
         return res.sendError("500", "[EMULATOR] unexpected error, cannot retrieve account info");
     });
 });
