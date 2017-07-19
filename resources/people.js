@@ -7,8 +7,8 @@ const router = express.Router({ "caseSensitive": true, "strict": false });
 
 // for parsing application/json
 const bodyParser = require("body-parser");
-router.use(bodyParser.json()); 
-    
+router.use(bodyParser.json());
+
 // Extra imports 
 const sendError = require('../utils').sendError;
 const sendSuccess = require('../utils').sendSuccess;
@@ -28,7 +28,7 @@ router.get("/", function (req, res) {
                 return sendSuccess(res, 200, { items: [] });
             }
 
-            return sendSuccess(res, 200, { items: [ person ] });
+            return sendSuccess(res, 200, { items: [person] });
         });
         return;
     }
@@ -38,38 +38,43 @@ router.get("/", function (req, res) {
 });
 
 
-// Show user
-router.get("/:id", function (req, res) {
+// Show current user details
+router.get("/me", function (req, res) {
     const db = req.app.locals.datastore;
     const actor = res.locals.person;
 
-    const personId =
-    
-    
-    db.people.find(actor, person.id, function (err, person) {
+    const personId = actor.id;
+    db.people.find(actor, personId, function (err, person) {
         if (!err) {
             return sendSuccess(res, 200, person);
         }
 
         // [PENDING] handle error cases 
-        debug(`unexpected error, cannot retrieve account info for person: ${actor.id}`);
+        debug(`unexpected error, cannot retrieve account info for person: ${personId}`);
         return res.sendError("500", "[EMULATOR] unexpected error, cannot retrieve account info");
     });
 });
 
-// Show current user
-router.get("/me", function (req, res) {
+
+// Show person details
+router.get("/:id", function (req, res) {
     const db = req.app.locals.datastore;
     const actor = res.locals.person;
-    
-    db.people.find(actor, person.id, function (err, person) {
-        if (!err) {
-            return sendSuccess(res, 200, person);
+
+    const personId = req.params.id;
+    db.people.find(actor, personId, function (err, person) {
+        if (err) {
+            switch (err.code) {
+                case "PERSON_NOT_FOUND":
+                    debug("Person not found")
+                    return sendError(res, 404, "Person not found");
+                default:
+                    debug(`unexpected error, cannot retrieve account info for person: ${personId}`);
+                    return sendError(res, 500, "[EMULATOR] unexpected error, cannot retrieve account info");
+            }
         }
 
-        // [PENDING] handle error cases 
-        debug(`unexpected error, cannot retrieve account info for person: ${actor.id}`);
-        return res.sendError("500", "[EMULATOR] unexpected error, cannot retrieve account info");
+        return sendSuccess(res, 200, person);
     });
 });
 
