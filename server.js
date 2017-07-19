@@ -40,12 +40,15 @@ datastore.people.init(accounts);
 //
 // Loading services
 //
-const people = require("./resources/people");
-app.use("/people", people);
-const rooms = require("./resources/rooms");
-app.use("/rooms", rooms);
-const memberships = require("./resources/memberships");
-app.use("/memberships", memberships);
+const peopleAPI = require("./resources/people");
+app.use("/people", peopleAPI);
+const roomsAPI = require("./resources/rooms");
+app.use("/rooms", roomsAPI);
+const membershipsAPI = require("./resources/memberships");
+app.use("/memberships", membershipsAPI);
+const messagesAPI = require("./resources/messages");
+app.use("/messages", messagesAPI);
+
 
 //
 // Starting server

@@ -9,9 +9,9 @@ function RoomStorage(datastore) {
     this.data = {};
 }
 
-RoomStorage.prototype.create = function (person, title, type, cb) {
+RoomStorage.prototype.create = function (actor, title, type, cb) {
 
-    assert.ok(person);
+    assert.ok(actor);
     assert.ok(title);
     assert.ok(type);
 
@@ -23,7 +23,7 @@ RoomStorage.prototype.create = function (person, title, type, cb) {
         "type": type,
         "isLocked": false,
         "lastActivity": now,
-        "creatorId": person.id,
+        "creatorId": actor.id,
         "created": now
     }
 
@@ -31,7 +31,7 @@ RoomStorage.prototype.create = function (person, title, type, cb) {
     this.data[room.id] = room;
 
     // Add creator to rom members
-    this.datastore.memberships._add(person.id, room.id, person);
+    this.datastore.memberships._add(actor.id, room.id, actor);
 
     if (cb) {
         cb(null, room);
@@ -39,9 +39,9 @@ RoomStorage.prototype.create = function (person, title, type, cb) {
 }
 
 
-RoomStorage.prototype.list = function (person, cb) {
+RoomStorage.prototype.list = function (actor, cb) {
 
-    assert.ok(person);
+    assert.ok(actor);
 
     // DEPRECATED: We need to filter out the rooms the person is not part of
     // var self = this;
@@ -52,18 +52,18 @@ RoomStorage.prototype.list = function (person, cb) {
     // });
 
     // 
-    this.listMyRooms(person, cb);
+    this.listMyRooms(actor, cb);
 }
 
 
 // Filters out the rooms the person is not part of
-RoomStorage.prototype.listMyRooms = function (person, cb) {
+RoomStorage.prototype.listMyRooms = function (actor, cb) {
 
-    assert.ok(person);
+    assert.ok(actor);
 
     // List user memberships
     const self = this;
-    this.datastore.memberships.listUserMemberships(person, function(err, memberships) {
+    this.datastore.memberships.listUserMemberships(actor, function (err, memberships) {
         if (err) {
             debug("unpected err: " + err.message);
             if (cb) {
@@ -73,10 +73,10 @@ RoomStorage.prototype.listMyRooms = function (person, cb) {
         }
 
         // Create a list of rooms for the user memberships
-        var rooms = memberships.map(function(elem, index) {
+        var rooms = memberships.map(function (elem, index) {
             return self.data[elem.roomId];
         }).sort(function (a, b) {
-        return (a.lastActivity < b.lastActivity);
+            return (a.lastActivity < b.lastActivity);
         });
 
         if (cb) {
@@ -86,21 +86,54 @@ RoomStorage.prototype.listMyRooms = function (person, cb) {
 }
 
 
-RoomStorage.prototype.find = function (person, roomId) {
+RoomStorage.prototype.find = function (actor, roomId, cb) {
 
+    assert.ok(actor);
     assert.ok(roomId);
 
-    // [PENDING]
-    //this.datastore.memberships.list
+    // Check room exists
+    const room = this.data[roomId];
+    if (!room) {
+        debug("room not found");
+        if (cb) {
+            var err = new Error("room not found");
+            err.code = "ROOM_NOT_FOUND";
+            cb(err, null);
+        }
+        return;
+    }
 
-    var self = this;
-    const list = Object.keys(this.data).map(function (key, index) {
-        return self.data[key];
-    }).sort(function (a, b) {
-        return (a.lastActivity < b.lastActivity);
+    // Check the user is part of the room
+    this.datastore.memberships.listUserMemberships(actor, function (err, memberships) {
+        if (err) {
+            debug("unexpected error: ${err.message}");
+            if (cb) {
+                cb(err, null);
+            }
+            return;
+        }
+
+        var found = false;
+        memberships.map(function (elem) {
+            if (elem.roomId == roomId) {
+                found = true;
+            }
+        });
+
+        if (!found) {
+            debug("user is not part of the room");
+            if (cb) {
+                var err = new Error("user is not part of the room");
+                err.code = "USER_NOT_IN_ROOM";
+                cb(err, null);
+            }
+            return;
+        }
+
+        if (cb) {
+            cb(null, room);
+        }
     });
-
-    return list;
 }
 
 module.exports = RoomStorage;

@@ -81,4 +81,26 @@ router.get("/", function (req, res) {
 });
 
 
+// Get room details
+router.get("/:id", function (req, res) {
+    const db = req.app.locals.datastore;
+    const actor = res.locals.person;
+
+    const roomId = req.params.id;
+    db.rooms.find(actor, roomId, function (err, room) {
+        if (err) {
+            switch (err.code) {
+                case "ROOM_NOT_FOUND":
+                    debug("Room not found")
+                    return sendError(res, 404, "Room not found");
+                default:
+                    debug(`unexpected error, cannot retrieve details for room: ${roomId}`);
+                    return sendError(res, 500, "[EMULATOR] unexpected error, cannot retrieve room details");
+            }
+        }
+
+        return sendSuccess(res, 200, room);
+    });
+});
+
 module.exports = router;
