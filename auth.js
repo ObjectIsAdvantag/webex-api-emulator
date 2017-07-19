@@ -1,6 +1,8 @@
 
 const debug = require("debug")("emulator:auth");
-const sendError = require("./error");
+const sendError = require('./utils').sendError;
+const sendSuccess = require('./utils').sendSuccess;
+
 
 const authentication = {};
 

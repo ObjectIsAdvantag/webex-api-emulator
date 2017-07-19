@@ -2,7 +2,7 @@
 const debug = require("debug")("emulator");
 const express = require("express");
 const uuid = require('uuid/v4');
-const sendError = require("./error");
+
 
 //
 // Setting up common services 

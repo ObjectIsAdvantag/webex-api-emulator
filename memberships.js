@@ -12,8 +12,8 @@ router.use(bodyParser.json());
 // Extra imports 
 const uuid = require('uuid/v4');
 const base64 = require('base-64');
-const sendError = require('./error');
-
+const sendError = require('./utils').sendError;
+const sendSuccess = require('./utils').sendSuccess;
 
 // Create a membership
 router.post("/", function (req, res) {
@@ -68,7 +68,7 @@ router.post("/", function (req, res) {
         if (!err) {
             // Return payload
             // Note that Cisco Spark returns 200 OK and not a 201 CREATED here
-            return res.status(200).send(membership);
+            return sendSuccess(res, 200, membership);
         }
 
         switch (err.code) {
@@ -102,7 +102,7 @@ router.get("/", function (req, res) {
     if (roomIdFilter) {
         db.memberships.listMembershipsForRoom(res.locals.person, roomIdFilter, function (err, list) {
             if (!err) {
-                return res.status(200).send({ "items": list });
+                return sendSuccess(res, 200, { "items": list });
             }
 
             switch (err.code) {
@@ -119,7 +119,7 @@ router.get("/", function (req, res) {
 
     db.memberships.listUserMemberships(res.locals.person, function (err, list) {
         if (!err) {
-            return res.status(200).send({ "items": list });
+            return sendSuccess(res, 200, { "items": list });
         }
 
         debug("[EMULATOR] Unexpected error");
@@ -137,7 +137,7 @@ router.get("/:id", function (req, res) {
     const db = req.app.locals.datastore;
     db.memberships.find(res.locals.person, membershipId, function (err, membership) {
         if (!err) {
-            return res.status(200).send(membership);
+            return sendSuccess(res, 200, membership);
         }
 
         switch (err.code) {

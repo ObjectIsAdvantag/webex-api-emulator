@@ -10,7 +10,8 @@ const bodyParser = require("body-parser");
 router.use(bodyParser.json()); 
     
 // Extra imports 
-const sendError = require('./error');
+const sendError = require('./utils').sendError;
+const sendSuccess = require('./utils').sendSuccess;
 
 
 // List people
@@ -26,8 +27,7 @@ router.get("/me", function (req, res) {
     const db = req.app.locals.datastore;
     db.people.find(personId, function (err, person) {
         if (!err) {
-            res.status(200).send(person);
-            return;
+            return sendSuccess(res, 200, person);
         }
 
         // [PENDING] handle error cases 

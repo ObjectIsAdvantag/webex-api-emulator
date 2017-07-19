@@ -12,7 +12,8 @@ router.use(bodyParser.json());
 // Extra imports 
 const uuid = require('uuid/v4');
 const base64 = require('base-64');
-const sendError = require('./error');
+const sendError = require('./utils').sendError;
+const sendSuccess = require('./utils').sendSuccess;
 
 
 // Create a room
@@ -52,7 +53,7 @@ router.post("/", function (req, res) {
 
     // Return payload
     // Note that Cisco Spark returns 200 OK and not a 201 CREATED here
-    res.status(200).send(room);
+    return sendSuccess(res, 200, room);
 });
 
 
@@ -63,7 +64,7 @@ router.get("/", function (req, res) {
     const db = req.app.locals.datastore;
     const list = db.rooms.list(res.locals.person);
 
-    res.status(200).send({ "items": list });
+    return sendSuccess(res, 200, { "items": list });
 });
 
 
