@@ -56,45 +56,83 @@ router.post("/", function (req, res) {
         debug("WARNING: moderation is not currently supported by the emumlator, ignoring...");
         isModerator = false;
     }
-    
-    if (personEmail) {
-        // [TODO] Retreive personId from PersonEmail
-        db.people.findWithEmail(actor, personEmail, function(err, person) {
-            if (err) {
-                debug(`person not found with email: ${personEmail}`);
-                return sendError(500, `[EMULATOR] unexpected error, person not found with email: ${personEmail}`)
+
+    // Priority goes to the personId if specified
+    // [TODO] check the priority assumption above
+    if (personId) {
+        // Create membership
+        db.memberships.create(actor, roomId, personId, isModerator, function (err, membership) {
+            if (!err) {
+                // Return payload
+                // Note that Cisco Spark returns 200 OK and not a 201 CREATED here
+                return sendSuccess(res, 200, membership);
             }
 
-            personId = person.id;
+            switch (err.code) {
+                case "NOT_A_MEMBER":
+                    debug(`room not found for identifier: ${roomId}`);
+                    // Note that I was expecting to return a 404 or 403, but, this is the current answer from Spark
+                    return sendError(res, 502, "Add participant failed.");
+                case "ALREADY_A_MEMBER":
+                    debug(`person: ${personId} is already a member of room: ${roomId}`);
+                    // Note that I was expecting to return a 404 or 403, but, this is the current answer from Spark
+                    return sendError(res, 409, "Person is already in the room.");
+                case "PERSON_NOT_FOUND":
+                    debug(`person not found`);
+                    // This is the current answer from Spark
+                    return sendError(res, 400, "Expect base64 ID or UUID.");
+                default:
+                    debug("could not add membership for another reason");
+                    // This is the current answer from Spark
+                    return sendError(res, 400, "[EMULATOR] could not add membership");
+            }
         });
+
+        return;
     }
 
-    // Create membership
-    db.memberships.create(actor, roomId, personId, isModerator, function (err, membership) {
-        if (!err) {
-            // Return payload
-            // Note that Cisco Spark returns 200 OK and not a 201 CREATED here
-            return sendSuccess(res, 200, membership);
+    // [TODO] Retreive personId from PersonEmail
+    db.people.findWithEmail(actor, personEmail, function (err, person) {
+        if (err) {
+            switch (err.code) {
+                case "PERSON_NOT_FOUND":
+                    debug(`${personEmail} not found.`);
+                    return sendError(res, 404, `${personEmail} not found.`);
+                default:
+                    debug(`person not found with email: ${personEmail}`);
+                    return sendError(res, 500, `[EMULATOR] unexpected error, person not found with email: ${personEmail}`);
+            }
         }
 
-        switch (err.code) {
-            case "NOT_A_MEMBER":
-                debug(`room not found for identifier: ${roomId}`);
-                // Note that I was expecting to return a 404 or 403, but, this is the current answer from Spark
-                return sendError(res, 502, "Add participant failed.");
-            case "ALREADY_A_MEMBER":
-                debug(`person: ${personId} is already a member of room: ${roomId}`);
-                // Note that I was expecting to return a 404 or 403, but, this is the current answer from Spark
-                return sendError(res, 409, "Person is already in the room.");
-            case "PERSON_NOT_FOUND":
-                debug(`person not found`);
-                // This is the current answer from Spark
-                return sendError(res, 400, "Expect base64 ID or UUID.");
-            default:
-                debug("could not add membership for another reason");
-                // This is the current answer from Spark
-                return sendError(res, 400, "[EMULATOR] could not add membership");
-        }
+        // Create membership
+        personId = person.id;
+
+        db.memberships.create(actor, roomId, personId, isModerator, function (err, membership) {
+            if (!err) {
+                // Return payload
+                // Note that Cisco Spark returns 200 OK and not a 201 CREATED here
+                return sendSuccess(res, 200, membership);
+            }
+
+            switch (err.code) {
+                case "NOT_A_MEMBER":
+                    debug(`room not found for identifier: ${roomId}`);
+                    // Note that I was expecting to return a 404 or 403, but, this is the current answer from Spark
+                    return sendError(res, 502, "Add participant failed.");
+                case "ALREADY_A_MEMBER":
+                    debug(`person: ${personId} is already a member of room: ${roomId}`);
+                    // Note that I was expecting to return a 404 or 403, but, this is the current answer from Spark
+                    return sendError(res, 409, "Person is already in the room.");
+                case "PERSON_NOT_FOUND":
+                    debug(`person not found`);
+                    // This is the current answer from Spark
+                    return sendError(res, 400, "Expect base64 ID or UUID.");
+                default:
+                    debug("could not add membership for another reason");
+                    // This is the current answer from Spark
+                    return sendError(res, 400, "[EMULATOR] could not add membership");
+            }
+        });
     });
 });
 
