@@ -17,12 +17,12 @@ const sendSuccess = require('../utils').sendSuccess;
 // List people
 router.get("/", function (req, res) {
     const db = req.app.locals.datastore;
-    const person = res.locals.person;
+    const actor = res.locals.person;
 
     // Check email filter
     const email = req.query.email;
     if (email) {
-        db.people.findWithEmail(person, email, function (err, person) {
+        db.people.findWithEmail(actor, email, function (err, person) {
             if (err) {
                 debug(`did not find any user with email: ${email}`)
                 return sendSuccess(res, 200, { items: [] });
@@ -38,18 +38,37 @@ router.get("/", function (req, res) {
 });
 
 
-// Show current user
-router.get("/me", function (req, res) {
+// Show user
+router.get("/:id", function (req, res) {
     const db = req.app.locals.datastore;
-    const person = res.locals.person;
+    const actor = res.locals.person;
+
+    const personId =
     
-    db.people.find(person, person.id, function (err, person) {
+    
+    db.people.find(actor, person.id, function (err, person) {
         if (!err) {
             return sendSuccess(res, 200, person);
         }
 
         // [PENDING] handle error cases 
-        debug(`unexpected error, cannot retrieve account info for person: ${person.id}`);
+        debug(`unexpected error, cannot retrieve account info for person: ${actor.id}`);
+        return res.sendError("500", "[EMULATOR] unexpected error, cannot retrieve account info");
+    });
+});
+
+// Show current user
+router.get("/me", function (req, res) {
+    const db = req.app.locals.datastore;
+    const actor = res.locals.person;
+    
+    db.people.find(actor, person.id, function (err, person) {
+        if (!err) {
+            return sendSuccess(res, 200, person);
+        }
+
+        // [PENDING] handle error cases 
+        debug(`unexpected error, cannot retrieve account info for person: ${actor.id}`);
         return res.sendError("500", "[EMULATOR] unexpected error, cannot retrieve account info");
     });
 });

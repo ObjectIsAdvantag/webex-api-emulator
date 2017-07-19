@@ -17,6 +17,7 @@ const sendSuccess = require('../utils').sendSuccess;
 //
 router.post("/", function (req, res) {
     const db = req.app.locals.datastore;
+    const actor = res.locals.person;
 
     // Check Media type
     const media = req.get("Content-Type");
@@ -58,7 +59,7 @@ router.post("/", function (req, res) {
     
     if (personEmail) {
         // [TODO] Retreive personId from PersonEmail
-        db.people.findWithEmail(res.locals.person, personEmail, function(err, person) {
+        db.people.findWithEmail(actor, personEmail, function(err, person) {
             if (err) {
                 debug(`person not found with email: ${personEmail}`);
                 return sendError(500, `[EMULATOR] unexpected error, person not found with email: ${personEmail}`)
@@ -69,7 +70,7 @@ router.post("/", function (req, res) {
     }
 
     // Create membership
-    db.memberships.create(res.locals.person, roomId, personId, isModerator, function (err, membership) {
+    db.memberships.create(actor, roomId, personId, isModerator, function (err, membership) {
         if (!err) {
             // Return payload
             // Note that Cisco Spark returns 200 OK and not a 201 CREATED here
@@ -101,11 +102,12 @@ router.post("/", function (req, res) {
 // List memberships
 router.get("/", function (req, res) {
     const db = req.app.locals.datastore;
+    const actor = res.locals.person;
 
     // Check for room filter: memberships?roomId={{_room}}
     var roomIdFilter = req.query.roomId;
     if (roomIdFilter) {
-        db.memberships.listMembershipsForRoom(res.locals.person, roomIdFilter, function (err, list) {
+        db.memberships.listMembershipsForRoom(actor, roomIdFilter, function (err, list) {
             if (!err) {
                 return sendSuccess(res, 200, { "items": list });
             }
@@ -122,7 +124,7 @@ router.get("/", function (req, res) {
         return;
     }
 
-    db.memberships.listUserMemberships(res.locals.person, function (err, list) {
+    db.memberships.listUserMemberships(actor, function (err, list) {
         if (!err) {
             return sendSuccess(res, 200, { "items": list });
         }
@@ -137,9 +139,10 @@ router.get("/", function (req, res) {
 // Get memberships details
 router.get("/:id", function (req, res) {
     const db = req.app.locals.datastore;
-    const membershipId = req.params.id;
+    const actor = res.locals.person;
 
-    db.memberships.find(res.locals.person, membershipId, function (err, membership) {
+    const membershipId = req.params.id;
+    db.memberships.find(actor, membershipId, function (err, membership) {
         if (!err) {
             return sendSuccess(res, 200, membership);
         }
@@ -155,7 +158,6 @@ router.get("/:id", function (req, res) {
         }
     });
 });
-
 
 
 module.exports = router;
