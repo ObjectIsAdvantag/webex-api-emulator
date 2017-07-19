@@ -95,15 +95,35 @@ router.post("/", function (req, res) {
 
 // List memberships
 router.get("/", function (req, res) {
-
     const db = req.app.locals.datastore;
-    db.memberships.list(res.locals.person, function (err, list) {
+
+    // Check for room filter: memberships?roomId={{_room}}
+    var roomIdFilter = req.query.roomId;
+    if (roomIdFilter) {
+        db.memberships.listMembershipsForRoom(res.locals.person, roomIdFilter, function (err, list) {
+            if (!err) {
+                return res.status(200).send({ "items": list });
+            }
+
+            switch (err.code) {
+                case "NOT_MEMBER_OF_ROOM":
+                    debug("Could not find a room with provided ID.");
+                    return sendError(res, 404, "Could not find a room with provided ID.");
+                default:
+                    debug("[EMULATOR] Unexpected error");
+                    return sendError(res, 500, "[EMULATOR] Unexpected error");
+            }
+        });
+        return;
+    }
+
+    db.memberships.listUserMemberships(res.locals.person, function (err, list) {
         if (!err) {
             return res.status(200).send({ "items": list });
         }
 
         debug("[EMULATOR] Unexpected error");
-        res.status(500).send("[EMULATOR] Unexpected error");
+        sendError(res, 500, "[EMULATOR] Unexpected error");
     });
 });
 
@@ -124,10 +144,10 @@ router.get("/:id", function (req, res) {
             case "MEMBERSHIP_NOT_FOUND":
             case "NOT_MEMBER_OF_ROOM":
                 debug("Failed to get membership");
-                return res.status(404).send("Failed to get membership");
+                return sendError(res, 404, "Failed to get membership");
             default:
                 debug("[EMULATOR] Unexpected error");
-                return res.status(500).send("[EMULATOR] Unexpected error");
+                return sendError(res, 500, "[EMULATOR] Unexpected error");
         }
     });
 });

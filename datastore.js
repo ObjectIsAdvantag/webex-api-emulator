@@ -232,27 +232,45 @@ MembershipStorage.prototype._add = function (actorId, roomId, newMember) {
 }
 
 
-MembershipStorage.prototype.list = function (actor, cb) {
+MembershipStorage.prototype.listMembershipsForRoom = function (actor, roomId, cb) {
 
     assert.ok(actor);
+    assert.ok(roomId);
 
+    var list = [];
     var self = this;
-    const list = Object.keys(this.memberships).map(function (key, index) {
-        var elem = self.memberships[key];
-        if (actor.id == elem.personId) {
-            return elem;
+    var found = false;
+    Object.keys(this.memberships).forEach(function (elem) {
+        var membership = self.memberships[elem];
+        if (membership.roomId == roomId) {
+            list.push(membership);
+            if (actor.id == membership.personId) {
+                found = true;
+            }
         }
-    }).sort(function (a, b) {
-        return (a.roomId > b.roomId);
     });
 
+    if (!found) {
+        var err = new Error(`membership found but the user: ${actor.id} is not part of room: ${membership.roomId}`);
+        err.code = "NOT_MEMBER_OF_ROOM";
+        if (cb) {
+            cb(err, null);
+        }
+        return;
+    }
 
+    // Sort by creation date DESC
+    // [TODO] check Spark ordering
+    list = list.sort(function (a, b) {
+        return (a.created < b.created);
+    });
+    
     if (cb) {
         cb(null, list);
     }
 }
 
-MembershipStorage.prototype.list = function (actor, cb) {
+MembershipStorage.prototype.listUserMemberships = function (actor, cb) {
 
     assert.ok(actor);
 
@@ -263,6 +281,12 @@ MembershipStorage.prototype.list = function (actor, cb) {
         if (actor.id == membership.personId) {
             list.push(membership);
         }
+    });
+
+    // Sort by creation date DESC
+    // [TODO] check Spark ordering
+    list = list.sort(function (a, b) {
+        return (a.created < b.created);
     });
 
     if (cb) {
