@@ -46,17 +46,18 @@ WebhookStorage.prototype.create = function (actor, name, resource, event, target
     }
 }
 
-// Filters out the rooms the person is not part of
-WebhookStorage.prototype.list = function (actor, cb) {
 
-    assert.ok(actor);
+// Returns the webhook of the specified actor
+WebhookStorage.prototype.list = function (actorId, cb) {
+
+    assert.ok(actorId);
 
     // List webhooks for actor, order by created date DESC
     const self = this;
     var webhooks = [];
     Object.keys(this.data).forEach(function (key) {
         let webhook = self.data[key];
-        if (webhook.createdBy == actor.id) {
+        if (webhook.createdBy == actorId) {
             webhooks.push(webhook);
         }
     });

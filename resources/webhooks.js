@@ -72,7 +72,7 @@ router.get("/", function (req, res) {
     const actor = res.locals.person;
 
     // Fetch list of rooms for current user
-    db.webhooks.list(actor, function (err, webhooks) {
+    db.webhooks.list(actor.id, function (err, webhooks) {
         if (err) {
             debug("unexpected error: " + err.message);
             sendError(res, 500, "[EMULATOR] cannot list webhooks, unexpected error");

@@ -13,15 +13,16 @@ const app = express();
 const EventEmitter = require('events').EventEmitter;
 const bus = new EventEmitter();
 
-// Inject Controller
-const Controller = require("./controller");
-const controller = new Controller(bus);
-
 // Inject Datastore
 const datastore = require("./storage/memory");
-app.locals.datastore = datastore;
 // [TODO] replace with new MemoryDatastore(bus)
 datastore.bus = bus;
+app.locals.datastore = datastore;
+
+// Inject Controller
+const Controller = require("./controller");
+const controller = new Controller(bus, datastore);
+
 
 app.set("x-powered-by", false); // to mimic Cisco Spark headers
 app.set("etag", false); // to mimic Cisco Spark headers
@@ -61,7 +62,7 @@ app.use("/messages", messagesAPI);
 const webhooksAPI = require("./resources/webhooks");
 app.use("/webhooks", webhooksAPI);
 
-// Healthcheck
+// Public resources
 app.locals.started = new Date(Date.now()).toISOString();
 app.get("/", function(req, res) {
     res.status(200).send({
