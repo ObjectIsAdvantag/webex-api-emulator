@@ -37,15 +37,15 @@ router.post("/", function (req, res) {
     }
     const title = incoming.title;
     if (!title || (typeof title != "string")) {
-        debug("missing title property in incoming payload");
-        return sendError(res, 400);
+        debug("Title cannot be empty.");
+        return sendError(res, 400, "Title cannot be empty.");
     }
 
     // Default values
     const type = incoming.type ? incoming.type : "group";
     if ((type !== "direct") && (type !== "group")) {
-        debug(`not supported room type: ${type}`);
-        return sendError(res, 400);
+        debug(`Can not construct instance of HydraRoomType from String value '${type}': value not one of declared Enum instance names: [direct, group] at line: 1, column: 2`);
+        return sendError(res, 400, `Can not construct instance of HydraRoomType from String value '${type}': value not one of declared Enum instance names: [direct, group] at line: 1, column: 2`);
     }
 
     // Create room

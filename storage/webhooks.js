@@ -9,32 +9,40 @@ function WebhookStorage(datastore) {
     this.data = {};
 }
 
-WebhookStorage.prototype.create = function (actor, title, type, cb) {
+WebhookStorage.prototype.create = function (actor, name, resource, event, targetUrl, filter, cb) {
 
     assert.ok(actor);
-    assert.ok(title);
-    assert.ok(type);
+    assert.ok(name);
+    // [TODO] check resource consistency
+    assert.ok(resource);
+    // [TODO] check event consistency
+    assert.ok(event);
+    // [TODO] check targetURL consistency
+    assert.ok(targetUrl);
+    // [TODO] check filter consistency
 
-    // Create room
+    // Create webhook
     const now = new Date(Date.now()).toISOString();
-    var room = {
+    var webhook = {
         "id": base64.encode("ciscospark://em/ROOM/" + uuid()),
-        "title": title,
-        "type": type,
-        "isLocked": false,
-        "lastActivity": now,
-        "creatorId": actor.id,
+        "name": name,
+        "targetUrl": targetUrl,
+        "resource": resource,
+        "event": event,
+        "filter": filter,
+        "orgId": actor.orgId,
+        "createdBy": actor.id,
+        "appId": "Y2lzY29zcGFyazovL3VzL0FQUExJQ0FUSU9OL0MyNzljYjMwYzAyOTE4MGJiNGJkYWViYjA2MWI3OTY1Y2RhMzliNjAyOTdjODUwM2YyNjZhYmY2NmM5OTllYzFm",
+        "ownedBy": "creator",
+        "status": "active",
         "created": now
     }
 
-    // Store room
-    this.data[room.id] = room;
-
-    // Add creator to rom members
-    this.datastore.memberships._add(actor.id, room.id, actor);
+    // Store webhook
+    this.data[webhook.id] = webhook;
 
     if (cb) {
-        cb(null, room);
+        cb(null, webhook);
     }
 }
 
@@ -62,55 +70,5 @@ WebhookStorage.prototype.list = function (actor, cb) {
     }
 }
 
-
-WebhookStorage.prototype.find = function (actor, roomId, cb) {
-
-    assert.ok(actor);
-    assert.ok(roomId);
-
-    // Check room exists
-    const room = this.data[roomId];
-    if (!room) {
-        debug("room not found");
-        if (cb) {
-            var err = new Error("room not found");
-            err.code = "ROOM_NOT_FOUND";
-            cb(err, null);
-        }
-        return;
-    }
-
-    // Check the user is part of the room
-    this.datastore.memberships.listUserMemberships(actor, function (err, memberships) {
-        if (err) {
-            debug("unexpected error: ${err.message}");
-            if (cb) {
-                cb(err, null);
-            }
-            return;
-        }
-
-        var found = false;
-        memberships.map(function (elem) {
-            if (elem.roomId == roomId) {
-                found = true;
-            }
-        });
-
-        if (!found) {
-            debug("user is not part of the room");
-            if (cb) {
-                var err = new Error("user is not part of the room");
-                err.code = "USER_NOT_IN_ROOM";
-                cb(err, null);
-            }
-            return;
-        }
-
-        if (cb) {
-            cb(null, room);
-        }
-    });
-}
 
 module.exports = WebhookStorage;

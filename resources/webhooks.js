@@ -35,30 +35,33 @@ router.post("/", function (req, res) {
     if (!incoming) {
         return sendError(res, 400);
     }
-    const title = incoming.title;
-    if (!title || (typeof title != "string")) {
-        debug("missing title property in incoming payload");
-        return sendError(res, 400);
+    const name = incoming.name;
+    if (!name || (typeof name != "string")) {
+        debug("name cannot be empty");
+        return sendError(res, 400, "name cannot be empty");
+    } 
+    const targetUrl = incoming.targetUrl;
+    if (!targetUrl || (typeof targetUrl != "string")) {
+        debug("targetUrl cannot be null");
+        return sendError(res, 400, "targetUrl cannot be null");
     }
 
     // Default values
-    const type = incoming.type ? incoming.type : "group";
-    if ((type !== "direct") && (type !== "group")) {
-        debug(`not supported room type: ${type}`);
-        return sendError(res, 400);
-    }
+    const resource = incoming.resource ? incoming.resource : "all";
+    const event = incoming.event ? incoming.event : "all";
+    const filter = incoming.filter ? incoming.filter : "";
 
-    // Create room
-    db.rooms.create(actor, title, type, function (err, room) {
+    // Create webhook
+    db.webhooks.create(actor, name, resource, event, targetUrl, filter, function (err, webhook) {
         if (err) {
             debug("unexpected error: " + err.message);
-            sendError(res, 500, "[EMULATOR] cannot create room, unexpected error");
+            sendError(res, 500, "[EMULATOR] cannot create webhook, unexpected error");
             return;
         }
 
         // Return payload
         // Note that Cisco Spark returns 200 OK and not a 201 CREATED here
-        return sendSuccess(res, 200, room);
+        return sendSuccess(res, 200, webhook);
     });
 });
 
@@ -83,24 +86,9 @@ router.get("/", function (req, res) {
 
 // Get webhook details
 router.get("/:id", function (req, res) {
-    const db = req.app.locals.datastore;
-    const actor = res.locals.person;
-
-    const roomId = req.params.id;
-    db.rooms.find(actor, roomId, function (err, room) {
-        if (err) {
-            switch (err.code) {
-                case "ROOM_NOT_FOUND":
-                    debug("Room not found")
-                    return sendError(res, 404, "Room not found");
-                default:
-                    debug(`unexpected error, cannot retrieve details for room: ${roomId}`);
-                    return sendError(res, 500, "[EMULATOR] unexpected error, cannot retrieve room details");
-            }
-        }
-
-        return sendSuccess(res, 200, room);
-    });
+    debug("Not implemented");
+    return sendError(res, 501, "[EMULATOR] Not implemented");
 });
+
 
 module.exports = router;
