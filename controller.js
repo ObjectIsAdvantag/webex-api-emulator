@@ -92,6 +92,13 @@ function onMessagesCreated(datastore, actor, message) {
                 body: notification,
                 json: true
             };
+
+            // Signing option ?
+            const secret = webhook.secret;
+            if (secret) {
+                options.headers["x-spark-signature"] = computeSignature(secret, notification);
+            }
+
             request(options, function (err, response, body) {
                 // Could not post to targetUrl
                 if (err) {
@@ -107,7 +114,10 @@ function onMessagesCreated(datastore, actor, message) {
 }
 
 
-
+const crypto = require("crypto");
+function computeSignature (secret, notification) {
+    return crypto.createHmac('sha1', secret).update(JSON.stringify(notification)).digest('hex');
+}
 
 
 

@@ -9,7 +9,7 @@ function WebhookStorage(datastore) {
     this.data = {};
 }
 
-WebhookStorage.prototype.create = function (actor, name, resource, event, targetUrl, filter, cb) {
+WebhookStorage.prototype.create = function (actor, name, resource, event, targetUrl, filter, secret, cb) {
 
     assert.ok(actor);
     assert.ok(name);
@@ -19,7 +19,7 @@ WebhookStorage.prototype.create = function (actor, name, resource, event, target
     assert.ok(event);
     // [TODO] check targetURL consistency
     assert.ok(targetUrl);
-    // [TODO] check filter consistency
+    // [TODO] if filter, check consistency
 
     // Create webhook
     const now = new Date(Date.now()).toISOString();
@@ -30,6 +30,7 @@ WebhookStorage.prototype.create = function (actor, name, resource, event, target
         "resource": resource,
         "event": event,
         "filter": filter,
+        "secret": secret,
         "orgId": actor.orgId,
         "createdBy": actor.id,
         "appId": "Y2lzY29zcGFyazovL3VzL0FQUExJQ0FUSU9OL0MyNzljYjMwYzAyOTE4MGJiNGJkYWViYjA2MWI3OTY1Y2RhMzliNjAyOTdjODUwM2YyNjZhYmY2NmM5OTllYzFm",

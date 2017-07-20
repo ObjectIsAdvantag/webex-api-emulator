@@ -49,10 +49,11 @@ router.post("/", function (req, res) {
     // Default values
     const resource = incoming.resource ? incoming.resource : "all";
     const event = incoming.event ? incoming.event : "all";
-    const filter = incoming.filter ? incoming.filter : "";
+    const filter = incoming.filter ? incoming.filter : null;
+    const secret = incoming.secret ? incoming.secret : null;
 
     // Create webhook
-    db.webhooks.create(actor, name, resource, event, targetUrl, filter, function (err, webhook) {
+    db.webhooks.create(actor, name, resource, event, targetUrl, filter, secret, function (err, webhook) {
         if (err) {
             debug("unexpected error: " + err.message);
             sendError(res, 500, "[EMULATOR] cannot create webhook, unexpected error");
