@@ -81,47 +81,31 @@ MessageStorage.prototype.find = function (actor, messageId, cb) {
     assert.ok(actor);
     assert.ok(messageId);
 
-    // Check room exists
-    const room = this.data[roomId];
-    if (!room) {
-        debug("room not found");
+    // Check message exists
+    const message = this.data[messageId];
+    if (!message) {
+        debug("message not found: ${messageId}");
         if (cb) {
-            var err = new Error("room not found");
-            err.code = "ROOM_NOT_FOUND";
+            var err = new Error("message not found");
+            err.code = "MESSAGE_NOT_FOUND";
             cb(err, null);
         }
         return;
     }
-
+   
     // Check the user is part of the room
-    this.datastore.memberships.listUserMemberships(actor, function (err, memberships) {
+    this.datastore.rooms.find(actor, message.roomId, function (err, room) {
         if (err) {
-            debug("unexpected error: ${err.message}");
+            debug("forwarding error: ${err.message}");
             if (cb) {
                 cb(err, null);
             }
             return;
         }
 
-        var found = false;
-        memberships.map(function (elem) {
-            if (elem.roomId == roomId) {
-                found = true;
-            }
-        });
-
-        if (!found) {
-            debug("user is not part of the room");
-            if (cb) {
-                var err = new Error("user is not part of the room");
-                err.code = "USER_NOT_IN_ROOM";
-                cb(err, null);
-            }
-            return;
-        }
-
+        // User is part of the room, and mesage found, let's return
         if (cb) {
-            cb(null, room);
+            cb(null, message);
         }
     });
 }
