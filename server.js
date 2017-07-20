@@ -9,9 +9,19 @@ const uuid = require('uuid/v4');
 //
 const app = express();
 
-// Inject datastore
+// Inject EventBus
+const EventEmitter = require('events').EventEmitter;
+const bus = new EventEmitter();
+
+// Inject Controller
+const Controller = require("./controller");
+const controller = new Controller(bus);
+
+// Inject Datastore
 const datastore = require("./storage/memory");
 app.locals.datastore = datastore;
+// [TODO] replace with new MemoryDatastore(bus)
+datastore.bus = bus;
 
 app.set("x-powered-by", false); // to mimic Cisco Spark headers
 app.set("etag", false); // to mimic Cisco Spark headers
@@ -50,11 +60,27 @@ const messagesAPI = require("./resources/messages");
 app.use("/messages", messagesAPI);
 
 
+// Healthcheck
+app.locals.started = new Date(Date.now()).toISOString();
+app.get("/", function(req, res) {
+    res.status(200).send({
+        "service" : "Mini-Spark",
+        "version" : "v0.1.0",
+        "up-since" : app.locals.started,
+        "creator" : "ObjectIsAdvantag <stsfartz@cisco.com>",
+        "github": "https://github.com/ObjectIsAdvantag/mini-spark",
+        "tokens" : authentication.tokens,
+        "resources": [
+            "/people", "/rooms", "/memberships", "/messages"
+        ]
+    });
+});
+
+
 //
 // Starting server
 //
 const port = process.env.PORT || 3210;
-app.locals.started = new Date(Date.now()).toISOString();
 app.listen(port, function () {
     debug(`Emulator started on port: ${port}`);
     console.log(`Emulator started on port: ${port}`);
