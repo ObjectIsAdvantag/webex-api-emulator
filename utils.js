@@ -1,17 +1,24 @@
-// Responds an error with the Cisco Spark format    
-// {
-//     "message": "Content type 'application/xml' not supported",
-//     "errors": [
-//         {
-//             "description": "Content type 'application/xml' not supported"
-//         }
-//     ],
-//     "trackingId": "NA_982ba0e9-a1a7-4eff-9be5-c6e5cdf94d73"
-// }
+//
+// Copyright (c) 2017 Cisco Systems
+// Licensed under the MIT License 
+//
+
 const assert = require("assert");
 
 var utils = {};
 
+/*
+ * Transmits an error with the Cisco Spark format    
+ * {
+ *     "message": "Content type 'application/xml' not supported",
+ *     "errors": [
+ *         {
+ *             "description": "Content type 'application/xml' not supported"
+ *         }
+ *     ],
+ *     "trackingId": "NA_982ba0e9-a1a7-4eff-9be5-c6e5cdf94d73"
+ * }
+ */
 utils.sendError = function (res, statusCode, message, error) {
     assert.ok((res), "no response specified");
     assert.ok((statusCode), "no statusCode specified");

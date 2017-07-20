@@ -1,3 +1,9 @@
+//
+// Copyright (c) 2017 Cisco Systems
+// Licensed under the MIT License 
+//
+
+
 const assert = require("assert");
 const uuid = require('uuid/v4');
 const base64 = require('base-64');

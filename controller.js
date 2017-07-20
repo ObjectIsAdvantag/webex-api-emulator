@@ -1,6 +1,12 @@
-// 
-// Watches events and takes actions
 //
+// Copyright (c) 2017 Cisco Systems
+// Licensed under the MIT License 
+//
+
+
+/* 
+ * Watches for Spark activities, checks if webhooks are registered and sends notifications
+ */
 
 const assert = require("assert");
 const uuid = require('uuid/v4');

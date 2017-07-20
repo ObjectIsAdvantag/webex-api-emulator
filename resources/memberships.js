@@ -1,3 +1,9 @@
+//
+// Copyright (c) 2017 Cisco Systems
+// Licensed under the MIT License 
+//
+
+
 const debug = require("debug")("emulator:memberships");
 const express = require("express");
 
