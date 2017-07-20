@@ -58,7 +58,8 @@ const membershipsAPI = require("./resources/memberships");
 app.use("/memberships", membershipsAPI);
 const messagesAPI = require("./resources/messages");
 app.use("/messages", messagesAPI);
-
+const webhooksAPI = require("./resources/webhooks");
+app.use("/webhooks", webhooksAPI);
 
 // Healthcheck
 app.locals.started = new Date(Date.now()).toISOString();
@@ -69,11 +70,14 @@ app.get("/", function(req, res) {
         "up-since" : app.locals.started,
         "creator" : "ObjectIsAdvantag <stsfartz@cisco.com>",
         "github": "https://github.com/ObjectIsAdvantag/mini-spark",
-        "tokens" : authentication.tokens,
+        "tokens" : "/tokens",
         "resources": [
-            "/people", "/rooms", "/memberships", "/messages"
+            "/people", "/rooms", "/memberships", "/messages", "/webhooks"
         ]
     });
+});
+app.get("/tokens", function(req, res) {
+    res.status(200).send(authentication.tokens);
 });
 
 

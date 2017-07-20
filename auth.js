@@ -14,6 +14,11 @@ if (!tokens) {
 authentication.tokens = tokens;
 
 authentication.middleware = function (req, res, next) {
+    // Public resources
+    if ((req.path == "/") || (req.path == "/tokens")) {
+        next();
+    }
+
     // Check authentication
     const auth = req.get("Authorization");
     if (!auth) {
