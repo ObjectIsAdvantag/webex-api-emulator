@@ -30,7 +30,7 @@ router.post("/", function (req, res) {
         debug("no Content-Type specified");
         return sendError(res, 415, "Content type 'text/plain' not supported");
     }
-    if (media !== "application/json") {
+    if (!media.startsWith("application/json")) {
         debug(`bad 'Content-Type' specified: '${media}'`);
         return sendError(res, 415, `Content type '${media}' not supported`);
     }

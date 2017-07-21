@@ -64,9 +64,6 @@ function onMessagesCreated(datastore, actor, message) {
         // Fire notification
         toNotify.forEach(function (webhook) {
 
-            // Remove text property from message (Cisco Spark's security)
-            delete message["text"]
-
             // Create custom notification for registered webhook
             var notification = {
                 "id": base64.encode("ciscospark://em/WEBHOOK/" + uuid()),
@@ -82,7 +79,14 @@ function onMessagesCreated(datastore, actor, message) {
                 "status": "active",
                 "created": webhook.created,
                 "actorId": actor.id,
-                "data": message
+                "data": {
+                    "id": message.id,
+                    "roomId": message.roomId,
+                    "roomType": message.roomType,
+                    "personId": message.personId,
+                    "personEmail": message.personEmail,
+                    "created": message.created
+                }
             }
 
             // Fire event
@@ -90,10 +94,10 @@ function onMessagesCreated(datastore, actor, message) {
             var options = {
                 method: 'POST',
                 url: notification.targetUrl,
-                headers:  { 
-                    "Content-type": "application/json, charset=UTF-8",
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8",
                     "X-Scheduled-For": notification.created,
-                    "User-Agent": "Emulator" 
+                    "User-Agent": "Emulator"
                 },
                 body: notification,
                 json: true
@@ -121,7 +125,7 @@ function onMessagesCreated(datastore, actor, message) {
 
 
 const crypto = require("crypto");
-function computeSignature (secret, notification) {
+function computeSignature(secret, notification) {
     return crypto.createHmac('sha1', secret).update(JSON.stringify(notification)).digest('hex');
 }
 
