@@ -69,13 +69,15 @@ app.use("/webhooks", webhooksAPI);
 
 // Public resources
 app.locals.started = new Date(Date.now()).toISOString();
+var props = require('./package.json');
 app.get("/", function(req, res) {
     res.status(200).send({
         "service" : "Mini-Spark",
-        "version" : "v0.1.0",
+        "description" : props.description,
+        "version" : props.version,
         "up-since" : app.locals.started,
-        "creator" : "ObjectIsAdvantag <stsfartz@cisco.com>",
-        "github": "https://github.com/ObjectIsAdvantag/mini-spark",
+        "creator" : props.author,
+        "code": "https://github.com/ObjectIsAdvantag/mini-spark",
         "tokens" : "/tokens",
         "resources": [
             "/people", "/rooms", "/memberships", "/messages", "/webhooks"

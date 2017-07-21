@@ -1,16 +1,17 @@
 {
   "name": "spark-emulator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Emulator of Cisco Spark REST API",
   "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "ciscospark",
     "emulator"
   ],
-  "author": "Stève Sfartz",
+  "author": "Stève Sfartz (Cisco DevNet) <stsfartz@cisco.com>",
   "license": "MIT",
   "dependencies": {
     "base-64": "^0.1.0",
