@@ -1,4 +1,4 @@
-# Emulator for Cisco Spark REST API
+# mini-spark: an Emulator for Cisco Spark REST API
 
 The primary goal of the emulator is to build Cisco Spark chat bots.
 Therefore, the emulator mimics Cisco Spark REST API behavior for /rooms, /messages, /memberships and /webhooks resources.
@@ -14,15 +14,13 @@ The emulator can be used for several purposes:
 
 ## Quickstart
 
-- The emulator comes with a [Postman collection](https://www.getpostman.com/collections/c76412ea237207555b57) companion to quickly run requests against both the Cisco Spark and Emulator APIs.
 
-    - Import the collection into Postman, and setup an environment with 4 variables: endpoint, spark_token, bot_token, bot_email
-       - endpoint: http://127.0.0.1:3210 (in place of https://api.ciscospark.com/v1)
-    
+
+
 
 - The emulator launches with a static list of Spark User and Bots accounts.
 
-    [Optional] update file 'tokens.json' with the tokens you want the API to accept. Generally, you'll want your name, email and organisation id to be displayed in there. You can put random values in there, or pick the real value as stored in Cisco Spark by hitting the /people/me of the Cisco Spark API
+    [Optional] update file 'tokens.json' with some fake access tokens you want the API to accept. Generally, you'll want to propose your name, email and organisation identifiers as well as your bot's information. 
 
 
 - Invoke Cisco Spark API Resources on default port http://localhost:3210, with a user of bot token from 'tokens.json'
@@ -35,3 +33,13 @@ The emulator can be used for several purposes:
    - GET  /memberships         show all your memberships
    - GET  /memberships?room=   fetch memberships for you and your bot in current room
    - POST /messages
+
+- The emulator comes with a [Postman collection](https://www.getpostman.com/collections/c76412ea237207555b57) companion to quickly run requests against both the Cisco Spark and Emulator APIs.
+
+    - Import the collection into Postman, and setup an environment with 4 variables: endpoint, spark_token, bot_token, bot_email
+       - endpoint: http://127.0.0.1:3210 (in place of https://api.ciscospark.com/v1), or mini-spark.herokuapp.com to put to an hosted version of the emulator,
+       - spark_token: the access token of a Cisco Spark Human user
+       - bot_token: the access token of a Cisco Spark Bot account
+       - bot_email: the email of the bot (for the user to invite it)
+
+    Note that values for `spark_token`, `bot_token` and `bot_email` must be part of the tokens.json file

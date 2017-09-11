@@ -112,7 +112,7 @@ function onMessagesCreated(datastore, actor, message) {
             request(options, function (err, response, body) {
                 // Could not post to targetUrl
                 if (err) {
-                    debug(`could not post to: ${targetUrl}, due to err: $'err.message}`);
+                    debug(`could not post to: ${notification.targetUrl}, due to err: ${err.message}`);
                     return;
                 }
 
