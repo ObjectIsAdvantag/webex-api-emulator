@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha tests"
   },
   "dependencies": {
     "base-64": "^0.1.0",
@@ -23,5 +23,8 @@
     "emulator"
   ],
   "author": "Stève Sfartz (Cisco DevNet) <stsfartz@cisco.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "chakram": "^1.5.0"
+  }
 }

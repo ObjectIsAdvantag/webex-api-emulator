@@ -7,10 +7,19 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
-            "program": "${workspaceRoot}\\server.js",
+            "name": "Emulator",
+            "program": "${workspaceRoot}/server.js",
             "env": {
                 "DEBUG": "emulator*"
+            }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Tests",
+            "program": "${workspaceRoot}/tests/ping.js",
+            "env": {
+                "ENDPOINT": "http://localhost:3210"
             }
         }
     ]
