@@ -69,3 +69,27 @@ DEBUG="emulator*" node server.js
        - bot_email: the email of the bot (for the user to invite it)
 
     Note that values for `spark_token`, `bot_token` and `bot_email` must be part of the tokens.json file
+
+
+## Running the test suite 
+
+The test suite is built with mocha.
+Launch the emulator and type:
+
+```shell
+npm install mocha -g
+mocha tests
+```
+
+Note that you can set the SPARK_ENDPOINT env variable to pick the Cisco Spark API provider you want to run the test suite against.
+
+```
+- default:    SPARK_ENDPOINT="https://localhost:3210"
+- minispark:  SPARK_ENDPOINT="https://mini-spark.herokuapp.com/tokens"
+- ciscospark: SPARK_ENDPOINT="https://api.ciscospark.com/v1/"
+```
+
+To run the Test suite against minispark, type:
+```shell
+SPARK_ENDPOINT=https://mini-spark.herokuapp.com  SPARK_TOKEN=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ  mocha tests
+```

@@ -1,6 +1,6 @@
 var chakram = require('chakram'), expect = chakram.expect;
 
-const endpoint = process.env.ENDPOINT || "http://localhost:3210";
+const endpoint = process.env.SPARK_ENDPOINT || "http://localhost:3210";
 
 describe("Emulator Healthcheck", function () {
     describe("ping", function () {
