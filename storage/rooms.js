@@ -169,7 +169,7 @@ RoomStorage.prototype.delete = function (actor, membershipList, roomId, cb) {
         if (err) {
             return cb(err, null)
         }
-        console.log('Found %d memberships for user in room', memberships.length);
+        debug('Found %d memberships room to be deletedg', memberships.length);
         membershipsToDelete = memberships;
         if (room.isModerated) {
             for (i=0; i<memberships.length; i++) {
