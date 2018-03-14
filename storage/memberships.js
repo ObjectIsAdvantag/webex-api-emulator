@@ -83,6 +83,9 @@ MembershipStorage.prototype.create = function (actor, roomId, newMemberId, isMod
         if (cb) {
             cb(null, membership);
         }
+
+        // Emit event
+        self.datastore.bus.emit('memberships/created', actor, membership);
     });
 }
 
@@ -267,6 +270,8 @@ MembershipStorage.prototype.delete = function (actor, membershipId, cb) {
     delete (this.data[membershipId]);
 
     // [TODO] Fire event
+    this.datastore.bus.emit('memberships/deleted', actor, membership);
+
 
     if (cb) {
         cb(null, membership);

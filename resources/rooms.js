@@ -108,4 +108,41 @@ router.get("/:id", function (req, res) {
     });
 });
 
+// Update a room
+router.put("/:id", function (req, res) {
+    debug(`Update room not implemented yet`);
+    return sendError(res, 501, "[EMULATOR] Update room not implemented yet");
+});
+
+
+// Delete a room
+router.delete("/:id", function (req, res) {
+    const db = req.app.locals.datastore;
+    const actor = res.locals.person;
+
+    const roomId = req.params.id;
+    db.rooms.delete(actor, db.memberships, roomId, function (err, membership) {
+        if (err) {
+            switch (err.code) {
+                case "ROOM_NOT_FOUND":
+                    debug("Cannot find room to delete");
+                    return sendError(res, 404, "Could not find a room with provided ID.");
+                case "MEMBERSHIP_NOT_FOUND":
+                case "NOT_MEMBER_OF_ROOM":
+                    debug("Cannot delete room when not a member");
+                    return sendError(res, 400, "Failed to delete room.");
+                case "NOT_MODERATOR_OF_ROOM":
+                    debug("Cannot delete moderated room when not a moderator");
+                    return sendError(res, 400, "Failed to delete moderated room.");
+                default:
+                    debug("[EMULATOR] Unexpected error");
+                    return sendError(res, 500, "[EMULATOR] Unexpected error");
+            }
+        }
+
+        return sendSuccess(res, 204);
+    });
+});
+
+
 module.exports = router;
