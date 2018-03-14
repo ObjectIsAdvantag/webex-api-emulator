@@ -142,4 +142,69 @@ RoomStorage.prototype.find = function (actor, roomId, cb) {
     });
 }
 
+// Deletes a room if the user is part of the room and it exists
+RoomStorage.prototype.delete = function (actor, membershipList, roomId, cb) {
+
+    assert.ok(actor);
+    assert.ok(roomId);
+
+    // Check room exists
+    const room = this.data[roomId];
+    if (!room) {
+        debug(`room does not exists with id: ${roomId}`);
+        if (cb) {
+            var err = new Error(`room does not exists with id: ${roomId}`);
+            err.code = "ROOM_NOT_FOUND";
+            cb(err, null);
+        }
+        return;
+    }
+
+    // Check the user is part of the room
+    var self = this;
+    var found = false;
+    var err = null;
+    var membershipsToDelete = []
+    membershipList.listMembershipsForRoom(actor, roomId, function(err, memberships) {
+        if (err) {
+            return cb(err, null)
+        }
+        console.log('Found %d memberships for user in room', memberships.length);
+        membershipsToDelete = memberships;
+        if (room.isModerated) {
+            for (i=0; i<memberships.length; i++) {
+                var membership = memberships[i];
+                if (membership.personId == actor.id) {
+                    if (membership.isModerator == true) {
+                        break;
+                    } else {
+                        var err = new Error(`room with id: ${roomId} exists but user is not a moderator`);
+                        err.code = "NOT_MODERATOR_OF_ROOM";
+                        return cb(err, null);
+                    }
+                }
+            }
+        }
+        // If we made it here we'll delete the room.  Delete all of its memberships too
+        for (i=0; i<membershipsToDelete.length; i++) {
+            var membership = membershipsToDelete[i];
+            membershipList.delete(actor, membership.id, function(err) {
+                if (err) {
+                    console.error("Failed to delete membership when deleted room: "+ err.message);
+                }
+            })
+        }
+        // Finally delete the room itself
+        delete (self.data[roomId]);
+
+        // GOOD TO KNOW: Spark does not seem to generate an event for deleted room
+        // (but it does delete one for each deleted membership  )
+
+        if (cb) {
+            cb(null, null);
+        }
+    });
+}
+
+
 module.exports = RoomStorage;
