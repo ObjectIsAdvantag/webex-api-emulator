@@ -96,5 +96,29 @@ router.get("/:id", function (req, res) {
     return sendError(res, 501, "[EMULATOR] Not implemented");
 });
 
+// Delete a webhook
+router.delete("/:id", function (req, res) {
+    const db = req.app.locals.datastore;
+    const actor = res.locals.person;
+
+    const webhookId = req.params.id;
+    db.webhooks.delete(actor, webhookId, function (err) {
+        if (err) {
+            switch (err.code) {
+                case "WEBHOOK_NOT_FOUND":
+                    debug("Cannot find webhook to delete");
+                    return sendError(res, 400, "Invalid webhookId for Delete Webhook request.");
+                case "NOT_OWNER_OF_WEBHOOK":
+                    debug("Cannot delete webhook not owned by user");
+                    return sendError(res, 400, "Failed to delete webhook.  You are not the owner of it.");
+                default:
+                    debug("[EMULATOR] Unexpected error");
+                    return sendError(res, 500, "[EMULATOR] Unexpected error");
+            }
+        }
+        return sendSuccess(res, 204);
+    });
+});
+
 
 module.exports = router;

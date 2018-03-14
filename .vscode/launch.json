@@ -8,7 +8,11 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceRoot}\\server.js",
+            "protocol": "inspector",
+            "program": "${workspaceFolder}/server.js",
+            "windows": {
+                "program": "${workspaceRoot}\\server.js"
+            },
             "env": {
                 "DEBUG": "emulator*"
             }
