@@ -88,11 +88,51 @@ router.post("/", function (req, res) {
                 return sendSuccess(res, 200, message);
             });
         });
-
+        return;
+    } else if (toPersonId) {
+        // toPersonId impl
+        // Check if the room exists
+        // Else create a new room
+        let title = actor.firstName + ' ' + actor.lastName
+        let type = "direct"
+        db.rooms.create(actor, title, type, function (err, room) {
+            if (err) {
+                debug("unexpected error: " + err.message);
+                sendError(res, 500, "[EMULATOR] cannot create room, unexpected error");
+                return;
+            }
+            let isModerator = false;
+            let roomId = room.id;
+            db.memberships.create(actor, roomId, toPersonId, isModerator, function (err, membership) {
+                if (!err) {
+                    // Return payload
+                    // Note that Cisco Spark returns 200 OK and not a 201 CREATED here
+                    return sendSuccess(res, 200, membership);
+                }
+    
+                switch (err.code) {
+                    case "NOT_A_MEMBER":
+                        debug(`room not found for identifier: ${roomId}`);
+                        // Note that I was expecting to return a 404 or 403, but, this is the current answer from Spark
+                        return sendError(res, 502, "Add participant failed.");
+                    case "ALREADY_A_MEMBER":
+                        debug(`person: ${personId} is already a member of room: ${roomId}`);
+                        // Note that I was expecting to return a 404 or 403, but, this is the current answer from Spark
+                        return sendError(res, 409, "Person is already in the room.");
+                    case "PERSON_NOT_FOUND":
+                        debug(`person not found`);
+                        // This is the current answer from Spark
+                        return sendError(res, 400, "Expect base64 ID or UUID.");
+                    default:
+                        debug("could not add membership for another reason");
+                        // This is the current answer from Spark
+                        return sendError(res, 400, "[EMULATOR] could not add membership");
+                }
+            });
+        });
         return;
     }
 
-    // toPersonId impl
     // toPersonEmail impl
     debug("not implemented yet");
     return sendError(res, 500, "[EMULATOR] not implemented yet");
