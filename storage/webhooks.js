@@ -78,5 +78,39 @@ WebhookStorage.prototype.list = function (actorId, cb) {
     }
 }
 
+// Deletes a webook
+WebhookStorage.prototype.delete = function (actor, webhookId, cb) {
 
+    assert.ok(actor);
+    assert.ok(webhookId);
+
+    // Check room exists
+    const webhook = this.data[webhookId];
+    if (!webhook) {
+        debug(`webhook does not exists with id: ${webhookId}`);
+        if (cb) {
+            var err = new Error(`webhook does not exists with id: ${webhookId}`);
+            err.code = "WEBHOOK_NOT_FOUND";
+            return cb(err, null);
+        }
+    }
+
+    // Check if the user owns this webhook
+    if (webhook.createdBy != actor.id) {
+        debug(`webhook does not exists with id: ${webhookId}`);
+        if (cb) {
+            var err = new Error(`webhook with id: ${webhookId} is not owned by user: ${actor.id}`);
+            err.code = "NOT_OWNER_OF_WEBHOOK";
+            return cb(err, null);
+        }
+    }
+    // If we made it here delete the room itself
+    delete (this.data[webhookId]);
+
+    // GOOD TO KNOW: Spark does not seem to generate an event for deleted webhook
+
+    if (cb) {
+        cb(null, null);
+    }
+}
 module.exports = WebhookStorage;
