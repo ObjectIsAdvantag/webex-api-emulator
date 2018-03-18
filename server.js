@@ -8,7 +8,6 @@ const debug = require("debug")("emulator");
 const express = require("express");
 const uuid = require('uuid/v4');
 
-
 //
 // Setting up common services 
 //
@@ -45,6 +44,23 @@ app.use(function (req, res, next) {
 // Middleware to enforce authentication
 const authentication = require("./auth");
 app.use(authentication.middleware);
+
+// for parsing application/json in middleware
+const bodyParser = require("body-parser");
+app.use(bodyParser.json());
+
+// Allow user to set the BOT_UNDER_TEST environmnet var in a .env file
+require('dotenv').load();
+if (process.env.BOT_UNDER_TEST) {
+    app.locals.botUnderTestEmail = process.env.BOT_UNDER_TEST;
+    // Middleware to catch requests with the X-Bot-Responses header
+    const botTest = require("./bot-test/bot-test");
+    app.use(botTest.middleware);
+
+    // Middleware to delay responses until we get the expected bot response
+    var botInterceptor = require('./bot-test/bot-interceptor');
+    app.use(botInterceptor);
+}
 
 // Load initial list of accounts
 const accounts = Object.keys(authentication.tokens).map(function (item, index) {

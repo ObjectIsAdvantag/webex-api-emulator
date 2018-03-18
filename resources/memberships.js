@@ -10,10 +10,6 @@ const express = require("express");
 // default routing properties to mimic Cisco     Spark
 const router = express.Router({ "caseSensitive": true, "strict": false });
 
-// for parsing application/json
-const bodyParser = require("body-parser");
-router.use(bodyParser.json());
-
 // Extra imports 
 const sendError = require('../utils').sendError;
 const sendSuccess = require('../utils').sendSuccess;
@@ -202,6 +198,13 @@ router.get("/:id", function (req, res) {
         return sendSuccess(res, 200, membership);
     });
 });
+
+// Update a membership
+router.put("/:id", function (req, res) {
+    debug(`Update membership not implemented yet`);
+    return sendError(res, 501, "[EMULATOR] Update membership not implemented yet");
+});
+
 
 
 // Delete a membership
