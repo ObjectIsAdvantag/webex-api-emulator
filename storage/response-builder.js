@@ -14,10 +14,10 @@
  * 
  */
 
+const debug = require("debug")("emulator:botTest");
 const assert = require("assert");
 const uuid = require('uuid/v4');
 const base64 = require('base-64');
-const debug = require("debug")("emulator:storage:response-builder");
 // Extra imports 
 const sendError = require('../utils').sendError;
 const sendSuccess = require('../utils').sendSuccess;
@@ -76,9 +76,14 @@ ResponseStorage.prototype.isTrackedResponse = function(response, body) {
 
     let respObj = this.data[testId];
     if (respObj.roomId) {
+        // This did generate a warning since we dont expect to get here
+        // without seeing at least one bot corellated bot requets
+        // There may be circumstances however where we correlate with 
+        // something other than the roomId though
     } else {
         // This is the response to the original spark API request from the 
-        // test framework.  Store it now to send after we get the bot responses
+        // test framework.  Store it now to send after we see all the 
+        // expected bot requests in response to the test input
         respObj.response = response;
         respObj.body = body;
         // Add the roomId which we'll use to correlate bot responses
@@ -126,7 +131,7 @@ ResponseStorage.prototype.isTrackedBotResponse = function(req) {
             respObjs.push(respObj);
         }
     });
-    console.log('Found %d saved responses that match bot request', respObjs.length);
+    debug('Found %d test framework responses that match bot request', respObjs.length);
     if (!respObjs.length) {
         return false;
     } else if (respObjs.length > 1) {
@@ -144,11 +149,20 @@ ResponseStorage.prototype.isTrackedBotResponse = function(req) {
         }
         respObj.seenBotResponses += 1;
         if (respObj.seenBotResponses == respObj.expectedBotResponses) {
+            debug("Saw all %d bot response to our test input.  " +
+                  "Will send a consolidate response.", 
+                  respObj.seenBotResponses);
+            debug(respObj.body);
             // We have all the bot responses we are waiting for
             // Send the new complex response to the test framework
             sendSuccess(respObj.response, 200, respObj.body);
             // Remove the response from our db of test responses to process
             self.removeResponseObj(index);
+        } else {
+            debug("Saw %d bot responses to our test input. " +
+                  "Waiting for %d more before sending a consolidate response.", 
+                  respObj.seenBotResponses, 
+                  (respObj.expectedBotResponses - respObj.seenBotResponses));            
         }
         return true;
     }
@@ -158,6 +172,7 @@ ResponseStorage.prototype.isTrackedBotResponse = function(req) {
 // includes both the response to the original test
 // framework request as well as one or more bot objects
 function buildComplexResponseBody(testBody, req) {
+    debug("Adding the bot request to the consolidated response for a test case:");
     return {
         'testFrameworkResponse': testBody,
         'botResponses': [{
@@ -172,6 +187,7 @@ function buildComplexResponseBody(testBody, req) {
 // includes both the response to the original test
 // framework request as well as one or more bot objects
 function addToComplexResponseBody(testBody, req) {
+    debug("Adding the bot request to the consolidated response for a test case:");
     testBody.botResponses.push({
         'method': req.method,
         'route': req.url,
