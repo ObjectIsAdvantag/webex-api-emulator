@@ -5,7 +5,7 @@
 
 // Middleware to correlate bot responses to bot-test input
 
-const debug = require("debug")("emulator:botInterceptor");
+const debug = require("debug")("emulator:botTest");
 const sendError = require('../utils').sendError;
 const sendSuccess = require('../utils').sendSuccess;
 var interceptor = require('express-interceptor');
@@ -18,10 +18,9 @@ let botInterceptor = interceptor(function(req, res){
     },
     // See if this is a response that we've been waiting for
     intercept: function(body, send) {
-      console.log(body);
       const db = req.app.locals.datastore;
       if (db.responses.isTrackedResponse(res, JSON.parse(body))) {
-        console.log('Holding the response while waiting for bot input...');
+        debug('Holding the response while waiting for bot input...');
       } else {
         send(body);
       }

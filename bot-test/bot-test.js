@@ -31,15 +31,16 @@ botTest.middleware = function (req, res, next) {
     // Check if this is a test request that should generate bot requests 
     const botTestHeader = req.get("X-Bot-Responses");
     if (botTestHeader) {
-        console.log('Found X-Bot-Test header: ' + botTestHeader);
+        debug('Found X-Bot-Test header: %s\n', botTestHeader);
         const db = req.app.locals.datastore;
         db.responses.initResponseObj(req, res, testIdCounter++);
     } else {
+        debug('\n');
         if(res.locals.person.emails[0] == botUnderTestEmail) {
             //See if this is a bot request in response to a test input
             const db = req.app.locals.datastore;
             if (db.responses.isTrackedBotResponse(req)) {
-                console.log('Updated response to test framework with bot request');
+                debug('Updated response to test framework with bot request');
             }  
         }
     }

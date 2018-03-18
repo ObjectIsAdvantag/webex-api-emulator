@@ -64,10 +64,7 @@ function onMessagesCreated(datastore, actor, message) {
                     if ((webhook.resource == "all")
                         || ((webhook.resource == "messages") && (webhook.event == "created"))) {
                         // [TODO] Check filter 
-                        if (webhook.createdBy !== message.personId) {
-                            // Dont send a webhook event back to the creator of the message
                             toNotify.push(webhook);
-                        }
                     }
                 });
             });
