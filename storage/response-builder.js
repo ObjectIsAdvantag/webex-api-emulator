@@ -88,7 +88,23 @@ ResponseStorage.prototype.isTrackedResponse = function(response, body) {
         respObj.body = body;
         // Add the roomId which we'll use to correlate bot responses
         respObj.roomId = body.roomId;
-        respObj.membershipId = body.id;
+        // If the bot is in this room, store its membershipID
+        if (response.req.app.locals.botActor) {
+            const actor = response.req.app.locals.botActor;
+            if (body.roomId) {
+                const db = response.req.app.locals.datastore;
+                db.memberships.listMembershipsForRoom(actor, body.roomId, function (err, list) {
+                    if ((!err) && (list.length)) {
+                        for (var i=0; i<list.length; i++) {
+                            if (list[i].personId == actor.id) {
+                                respObj.membershipId = list[i].id;
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+        }
         return true;
     }
     return false;
