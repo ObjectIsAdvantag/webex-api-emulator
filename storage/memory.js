@@ -22,5 +22,7 @@ const MessageStorage = require("./messages");
 datastore.messages = new MessageStorage(datastore);
 const WebhookStorage = require("./webhooks");
 datastore.webhooks = new WebhookStorage(datastore);
+const ResponseStorage = require("./response-builder")
+datastore.responses = new ResponseStorage(datastore);
 
 module.exports = datastore;

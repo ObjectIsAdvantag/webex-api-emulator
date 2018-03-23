@@ -42,6 +42,11 @@ MessageStorage.prototype.createInRoom = function (actor, room, text, markdown, f
         // .use(require('markdown-it-sanitizer'));
         // md.render('<b>test<p></b>'); // => '<p><b>test</b></p>' 
         message.html = markdown;
+        // Check if we need to build a mentionedPeople array
+        let mentionedPeople = buildMentionedPeopleArray(markdown);
+        if (mentionedPeople.length) {
+            message.mentionedPeople = mentionedPeople;
+        }
     }
 
     // Store message
@@ -114,6 +119,19 @@ MessageStorage.prototype.find = function (actor, messageId, cb) {
             cb(null, message);
         }
     });
+}
+
+function buildMentionedPeopleArray(markdown) {
+    let mentionedPeople = [];
+    //TODO -- check for mentioned people by personEmail
+    re = /.*\<@personId\:(.*)\|.*/
+    let personId = markdown.replace(re, '$1');
+    if (personId) {
+        mentionedPeople.push(personId)
+    }
+    //TODO -- This just gets the last mentioned person if multiples are mentioned
+    // Figure out how to get all of them!
+    return mentionedPeople
 }
 
 
