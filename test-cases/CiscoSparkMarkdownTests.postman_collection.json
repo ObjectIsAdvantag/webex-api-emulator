@@ -1,0 +1,1264 @@
+{
+	"info": {
+		"name": "Cisco Spark Markdown Tests",
+		"_postman_id": "72196756-2129-4c42-9dbb-1c51853096c2",
+		"description": "This set of tests posts a series of messages with markdown to Spark and the Spark Emulator and compares the results.\n\nIt requires an enviornment that specifies:\n* API_URL -- THe URL of the live Spark API\n* spark_token -- A valid auth token for calling Spark\n* tester_id -- the person ID of the holder of spark_token\n* tester_display_name -- the display name of the holder of spark_token\n* tester_nickname -- the nickname of the holder of the spark_token\n* tester_email -- the mail of the holder of the spark_token\n* person2_id: -- the person ID of a second person that can be added to the spark room\n* person2_email - the spark email for the second person\n* person2_display_name - the second person's spark display name\n* person2_nickname -- the second person's nickname\n\n* EMULATOR_URL - The URL of the Spark Emulator being tested\n* emulator_token - The token of a user specified in the emulator's token.json file\n* emulator_display_name - The display name associated with that user in token.json\n* emulator_nickname - The nickname associated with that user in token.json\n* emulator_id - The person ID associated with that user in token.json\n* emulator_email - The email associated with that user in token.json\n* emulator_person2_id The person ID of a second user defined in the emulator's token.json file\n* emulator_person2_email: - The email associated with that user in token.json\n* emulator_person2_display_name - The display name associated with that user in token.json\n* emulator_person2_nickname - The nickname associated with that user in token.json\n",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Spark Create a group room (and define global tests)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3df40439-b0b0-4ab1-b7a8-47f6e4759ead",
+						"type": "text/javascript",
+						"exec": [
+							"// Save common tests in a global variable",
+							"// Check if the initial test request returned the expected value",
+							"postman.setGlobalVariable(\"commonTests\", (task, status) => {",
+							"  // We expect a 200 OK",
+							"  tests[task + \" returned \" + status] = responseCode.code === status;",
+							"  // The Content-Type must be JSON",
+							"  tests[\"Content-Type header is set\"] = postman.getResponseHeader(\"Content-Type\") === \"application/json;charset=UTF-8\";",
+							"});",
+							"",
+							"// Collect the headers in a response from Spark ",
+							"postman.setGlobalVariable(\"getHeaders\", () => {",
+							"    postman.setEnvironmentVariable(\"_sparkContentTypeHeader\", postman.getResponseHeader(\"Content-Type\"));",
+							"});",
+							"",
+							"// Compare emulator response headers to spark response headers",
+							"postman.setGlobalVariable(\"compareHeaders\", () => {",
+							"  tests[\"Emulator Content-Type header matches spark\"] = postman.getResponseHeader(\"Content-Type\") === postman.getEnvironmentVariable(\"_sparkContentTypeHeader\");",
+							"});",
+							"",
+							"// Collect the message elements returned by spark",
+							"postman.setGlobalVariable(\"getMessageElements\", (body) => {",
+							"    console.log(body.text)",
+							"    postman.setEnvironmentVariable(\"_sparkText\", body.text);",
+							"    postman.setEnvironmentVariable(\"_sparkHtml\", body.html);",
+							"    postman.setEnvironmentVariable(\"_sparkMarkdown\", body.markdown);",
+							"    if (body.mentionedPeople) {",
+							"        postman.setEnvironmentVariable(\"_sparkMentionsCount\", body.mentionedPeople.length);",
+							"    } else {",
+							"        postman.setEnvironmentVariable(\"_sparkMentionsCount\", 0);        ",
+							"    }",
+							"});",
+							"",
+							"",
+							"",
+							"// Compare emulator message elements with spark",
+							"postman.setGlobalVariable(\"compareMessageElements\", (body, sparkIds, emulatorIds) => {",
+							"  let sparkIdRegex = '';",
+							"  let emulatorIdRegex = '';",
+							"  let sparkHtml = postman.getEnvironmentVariable(\"_sparkHtml\");",
+							"  let emulatorHtml = body.html;",
+							"  let sparkMarkdown = postman.getEnvironmentVariable(\"_sparkMarkdown\");",
+							"  let emulatorMarkdown = body.markdown;",
+							"  // Strip user IDs from HTML and Markdown before comparing",
+							"  // Spark and the emulator since they will be different",
+							"  if ((sparkIds) && (sparkIds.length)) {",
+							"      sparkIdRegex = new RegExp(sparkIds.join('|'), 'g');",
+							"      sparkMarkdown = sparkMarkdown.replace(sparkIdRegex, '');",
+							"      sparkHtml = sparkHtml.replace(sparkIdRegex, '');",
+							"  }",
+							"  if ((emulatorIds) && (emulatorIds.length)) {",
+							"      emulatorIdRegex = new RegExp(emulatorIds.join('|'), 'g')",
+							"      emulatorMarkdown = emulatorMarkdown.replace(emulatorIdRegex, '');",
+							"      emulatorHtml = emulatorHtml.replace(emulatorIdRegex, '');",
+							"  }",
+							"  tests[\"Emulator Message text matches spark\"] = body.text.replace(/\\n|\\s/gm, '') === postman.getEnvironmentVariable(\"_sparkText\").replace(/\\n|\\s/gm, '');",
+							"  tests[\"Emulator Message html matches spark\"] = emulatorHtml.replace(/\\n|\\s/gm, '') === sparkHtml.replace(/\\n|\\s/gm, '');",
+							"  tests[\"Emulator Message markdown matches spark\"] = emulatorMarkdown === sparkMarkdown;",
+							"  ",
+							"  if (body.mentionedPeople) {",
+							"      tests[\"Emulator mentionPeople arr length matches spark\"] = body.mentionedPeople.length == postman.getEnvironmentVariable(\"_sparkMentionsCount\");",
+							"    } else {",
+							"      tests[\"Emulator mentionPeople arr length matches spark\"] = 0 === postman.getEnvironmentVariable(\"_sparkMentionsCount\");  ",
+							"    }",
+							"});",
+							"",
+							"",
+							"// Run the common tests for the create room request",
+							"eval(globals.commonTests)(\"Create room\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getHeaders)();",
+							"",
+							"// Assuming all went well get the room id  ",
+							"var jsonData = JSON.parse(responseBody);",
+							"if (jsonData.id === undefined) {",
+							"    tests[\"Create a room: cannot retreive room identifier\"] = false",
+							"}",
+							"else {",
+							"    var roomID = jsonData.id;",
+							"    postman.setEnvironmentVariable(\"_room\", roomID);",
+							"    tests[\"Create a room: created with id:\" + roomID] = true",
+							"}",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{spark_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "",
+						"value": "",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"Markdown-Tester-Room\"\n}"
+				},
+				"url": {
+					"raw": "{{API_URL}}/rooms",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"rooms"
+					]
+				},
+				"description": "Creates a room. The authenticated user is automatically added as a member of the room. \n\nOn the test tab we define some global tests methods that will be used in subseqent test cases.\n\nIn addition we capture the roomId of the created room and store it in the _roomId environment variable for us in subseqent requests."
+			},
+			"response": []
+		},
+		{
+			"name": "Emulator Create a group room",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "6f43f006-fde1-4385-bec3-de9d49363203",
+						"type": "text/javascript",
+						"exec": [
+							"eval(globals.commonTests)(\"Create room\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.compareHeaders)();",
+							"",
+							"// Assuming all went well get the room id  ",
+							"var jsonData = JSON.parse(responseBody);",
+							"if (jsonData.id === undefined) {",
+							"    tests[\"Create a room: cannot retreive room identifier\"] = false",
+							"}",
+							"else {",
+							"    var roomID = jsonData.id;",
+							"    postman.setEnvironmentVariable(\"_emulatorRoom\", roomID);",
+							"    tests[\"Create a room: created with id:\" + roomID] = true",
+							"}",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{emulator_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "",
+						"value": "",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"Markdown-Tester-Room\"\n}"
+				},
+				"url": {
+					"raw": "{{EMULATOR_URL}}/rooms",
+					"host": [
+						"{{EMULATOR_URL}}"
+					],
+					"path": [
+						"rooms"
+					]
+				},
+				"description": "Creates a room. The authenticated user is automatically added as a member of the room. \n\nOn the test tab we define some global tests methods that will be used in subseqent test cases.\n\nIn addition we capture the roomId of the created room and store it in the _roomId environment variable for us in subseqent requests."
+			},
+			"response": []
+		},
+		{
+			"name": "Create a markdown message",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "cefa32c1-afed-49be-ab29-2defb85be835",
+						"type": "text/javascript",
+						"exec": [
+							"",
+							"// Run the common tests for the create room request",
+							"eval(globals.commonTests)(\"Create markdown message in Spark\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getHeaders)();",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getMessageElements)(JSON.parse(responseBody));",
+							"",
+							"    ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{spark_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"roomId\" : \"{{_room}}\",\r\n  \"markdown\" : \"# Message Formatting!\\nSpark clients now render rich text; enabling bots and integrations to communicate business data in a way that's fun to read and easy on the eyes!\\n\\n## Styling Text\\nMessages are styled using [Markdown](https://daringfireball.net/projects/markdown/syntax) syntax allowing text to be emphasized in **bold**, *italics* on `in-line code`.\\n\\n### Fenced Code Blocks\\nSpark can now also render fenced code blocks using triple backticks (aka GitHub Flavored Markdown)\\n\\n```\\nsource 'https://github.com/CocoaPods/Specs.git'\\nplatform :ios, '8.0'\\nuse_frameworks!\\n\\npost_install do |installer|\\n  installer.pods_project.targets.each do |target|\\n    target.build_configurations.each do |config|\\n      config.build_settings['ENABLE_BITCODE'] = 'NO'\\n    end\\n  end\\nend\\n\\ntarget 'SparkBnB' do\\n  pod 'SparkSDK', :path => '../'\\n  pod 'Toast-Swift', '~> 1.1.0'\\nend\\n```\\n\\n### Lists\\n\\nLists are a great way to organize information or present options to your audience.\\n\\nOrderd Lists\\n1. List Item\\n2. List Item\\n3. List Item\\n\\nUnordered Lists\\n* List Item\\n* List Item\\n* List Item\\n\\n### Block Quotes\\n\\n> Quoting is a super powerful way for bots to respond to a message that happened a while back in the conversation.\",\r\n  \"text\": \"This text would be displayed by Spark clients that would not support Markdown.\"\r\n}"
+				},
+				"url": {
+					"raw": "{{API_URL}}/messages",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"messages"
+					]
+				},
+				"description": "Posts a plain text or markdown message, and optionally, a media content attachment, to a room.\n\nTo get more info about message formatting, check https://developer.ciscospark.com/formatting-messages.html\n\nhttps://developer.ciscospark.com/endpoint-messages-post.html\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Emulator Create a markdown message",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5795ae74-4c17-4976-b1a7-c0740644f51e",
+						"type": "text/javascript",
+						"exec": [
+							"",
+							"// Run the common tests for the create room request",
+							"eval(globals.commonTests)(\"Create markdown message in Emulator\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.compareHeaders)();",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.compareMessageElements)(JSON.parse(responseBody));",
+							"",
+							"    ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{emulator_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"roomId\" : \"{{_emulatorRoom}}\",\r\n  \"markdown\" : \"# Message Formatting!\\nSpark clients now render rich text; enabling bots and integrations to communicate business data in a way that's fun to read and easy on the eyes!\\n\\n## Styling Text\\nMessages are styled using [Markdown](https://daringfireball.net/projects/markdown/syntax) syntax allowing text to be emphasized in **bold**, *italics* on `in-line code`.\\n\\n### Fenced Code Blocks\\nSpark can now also render fenced code blocks using triple backticks (aka GitHub Flavored Markdown)\\n\\n```\\nsource 'https://github.com/CocoaPods/Specs.git'\\nplatform :ios, '8.0'\\nuse_frameworks!\\n\\npost_install do |installer|\\n  installer.pods_project.targets.each do |target|\\n    target.build_configurations.each do |config|\\n      config.build_settings['ENABLE_BITCODE'] = 'NO'\\n    end\\n  end\\nend\\n\\ntarget 'SparkBnB' do\\n  pod 'SparkSDK', :path => '../'\\n  pod 'Toast-Swift', '~> 1.1.0'\\nend\\n```\\n\\n### Lists\\n\\nLists are a great way to organize information or present options to your audience.\\n\\nOrderd Lists\\n1. List Item\\n2. List Item\\n3. List Item\\n\\nUnordered Lists\\n* List Item\\n* List Item\\n* List Item\\n\\n### Block Quotes\\n\\n> Quoting is a super powerful way for bots to respond to a message that happened a while back in the conversation.\",\r\n  \"text\": \"This text would be displayed by Spark clients that would not support Markdown.\"\r\n}"
+				},
+				"url": {
+					"raw": "{{EMULATOR_URL}}/messages",
+					"host": [
+						"{{EMULATOR_URL}}"
+					],
+					"path": [
+						"messages"
+					]
+				},
+				"description": "Posts a plain text or markdown message, and optionally, a media content attachment, to a room.\n\nTo get more info about message formatting, check https://developer.ciscospark.com/formatting-messages.html\n\nhttps://developer.ciscospark.com/endpoint-messages-post.html\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Create a markdown message without alternate text",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "d8ba774b-48df-4668-9908-3a60cabec964",
+						"type": "text/javascript",
+						"exec": [
+							"// Run the common tests for the create room request",
+							"eval(globals.commonTests)(\"Markdown message with no alternate text in Spark\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getHeaders)();",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getMessageElements)(JSON.parse(responseBody));",
+							"    ",
+							"    ",
+							"    ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{spark_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"roomId\" : \"{{_room}}\",\r\n  \"markdown\" : \"# Message Formatting!\\nSpark clients now render rich text; enabling bots and integrations to communicate business data in a way that's fun to read and easy on the eyes!\\n\\n## Styling Text\\nMessages are styled using [Markdown](https://daringfireball.net/projects/markdown/syntax) syntax allowing text to be emphasized in **bold**, *italics* on `in-line code`.\\n\\n### Fenced Code Blocks\\nSpark can now also render fenced code blocks using triple backticks (aka GitHub Flavored Markdown)\\n\\n```\\nsource 'https://github.com/CocoaPods/Specs.git'\\nplatform :ios, '8.0'\\nuse_frameworks!\\n\\npost_install do |installer|\\n  installer.pods_project.targets.each do |target|\\n    target.build_configurations.each do |config|\\n      config.build_settings['ENABLE_BITCODE'] = 'NO'\\n    end\\n  end\\nend\\n\\ntarget 'SparkBnB' do\\n  pod 'SparkSDK', :path => '../'\\n  pod 'Toast-Swift', '~> 1.1.0'\\nend\\n```\\n\\n### Lists\\n\\nLists are a great way to organize information or present options to your audience.\\n\\nOrderd Lists\\n1. List Item\\n2. List Item\\n3. List Item\\n\\nUnordered Lists\\n* List Item\\n* List Item\\n* List Item\\n\\n### Block Quotes\\n\\n> Quoting is a super powerful way for bots to respond to a message that happened a while back in the conversation.\"\r\n}"
+				},
+				"url": {
+					"raw": "{{API_URL}}/messages",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"messages"
+					]
+				},
+				"description": "Posts a plain text or markdown message, and optionally, a media content attachment, to a room.\n\nTo get more info about message formatting, check https://developer.ciscospark.com/formatting-messages.html\n\nhttps://developer.ciscospark.com/endpoint-messages-post.html\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Emulator create a markdown message without alternate text",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b3366dce-e805-4e04-9356-de40b80a1bc2",
+						"type": "text/javascript",
+						"exec": [
+							"",
+							"// Run the common tests for the create room request",
+							"eval(globals.commonTests)(\"Markdown message no alternate text in Emulator\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.compareHeaders)();",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.compareMessageElements)(JSON.parse(responseBody));",
+							"",
+							"    ",
+							"",
+							"    ",
+							"    ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{emulator_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"roomId\" : \"{{_emulatorRoom}}\",\r\n  \"markdown\" : \"# Message Formatting!\\nSpark clients now render rich text; enabling bots and integrations to communicate business data in a way that's fun to read and easy on the eyes!\\n\\n## Styling Text\\nMessages are styled using [Markdown](https://daringfireball.net/projects/markdown/syntax) syntax allowing text to be emphasized in **bold**, *italics* on `in-line code`.\\n\\n### Fenced Code Blocks\\nSpark can now also render fenced code blocks using triple backticks (aka GitHub Flavored Markdown)\\n\\n```\\nsource 'https://github.com/CocoaPods/Specs.git'\\nplatform :ios, '8.0'\\nuse_frameworks!\\n\\npost_install do |installer|\\n  installer.pods_project.targets.each do |target|\\n    target.build_configurations.each do |config|\\n      config.build_settings['ENABLE_BITCODE'] = 'NO'\\n    end\\n  end\\nend\\n\\ntarget 'SparkBnB' do\\n  pod 'SparkSDK', :path => '../'\\n  pod 'Toast-Swift', '~> 1.1.0'\\nend\\n```\\n\\n### Lists\\n\\nLists are a great way to organize information or present options to your audience.\\n\\nOrderd Lists\\n1. List Item\\n2. List Item\\n3. List Item\\n\\nUnordered Lists\\n* List Item\\n* List Item\\n* List Item\\n\\n### Block Quotes\\n\\n> Quoting is a super powerful way for bots to respond to a message that happened a while back in the conversation.\"\r\n}"
+				},
+				"url": {
+					"raw": "{{EMULATOR_URL}}/messages",
+					"host": [
+						"{{EMULATOR_URL}}"
+					],
+					"path": [
+						"messages"
+					]
+				},
+				"description": "Posts a plain text or markdown message, and optionally, a media content attachment, to a room.\n\nTo get more info about message formatting, check https://developer.ciscospark.com/formatting-messages.html\n\nhttps://developer.ciscospark.com/endpoint-messages-post.html\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Spark @mention by id someone not in room",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "e125d0a9-9737-4366-8dae-c65d937d7dc2",
+						"type": "text/javascript",
+						"exec": [
+							"eval(globals.commonTests)(\"Mention message by id not in room in Spark\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getHeaders)();",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getMessageElements)(JSON.parse(responseBody));",
+							"    ",
+							"    ",
+							"    ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{spark_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"roomId\" : \"{{_room}}\",\r\n  \"markdown\" : \"<@personId:{{person2_id}}|{{emulator_person2_nickname}}> This is a mention for {{emulator_person2_display_name}}\"\r\n}"
+				},
+				"url": {
+					"raw": "{{API_URL}}/messages",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"messages"
+					]
+				},
+				"description": "Posts a plain text or markdown message, and optionally, a media content attachment, to a room.\n\nTo get more info about message formatting, check https://developer.ciscospark.com/formatting-messages.html\n\nhttps://developer.ciscospark.com/endpoint-messages-post.html\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Emulator @mention by id someone not in room",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c4dd0a5d-7153-4c58-a302-ff304379abcf",
+						"type": "text/javascript",
+						"exec": [
+							"eval(globals.commonTests)(\"Mention message by id not in room in Emulator\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.compareHeaders)();",
+							"",
+							"// Collect the headers from the real Spark call",
+							"let sparkIds = [postman.getEnvironmentVariable('person2_id')];",
+							"let emulatorIds = [postman.getEnvironmentVariable('emulator_person2_id')];",
+							"eval(globals.compareMessageElements)(JSON.parse(responseBody), sparkIds, emulatorIds);",
+							"",
+							"    ",
+							"",
+							"    ",
+							"    ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{emulator_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"roomId\" : \"{{_emulatorRoom}}\",\r\n  \"markdown\" : \"<@personId:{{emulator_person2_id}}|{{emulator_person2_nickname}}> This is a mention for {{emulator_person2_display_name}}\"\r\n}"
+				},
+				"url": {
+					"raw": "{{EMULATOR_URL}}/messages",
+					"host": [
+						"{{EMULATOR_URL}}"
+					],
+					"path": [
+						"messages"
+					]
+				},
+				"description": "Posts a plain text or markdown message, and optionally, a media content attachment, to a room.\n\nTo get more info about message formatting, check https://developer.ciscospark.com/formatting-messages.html\n\nhttps://developer.ciscospark.com/endpoint-messages-post.html\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Spark @mention by id with invalid ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b1ec4127-2f0a-4c74-b060-050219d12b86",
+						"type": "text/javascript",
+						"exec": [
+							"eval(globals.commonTests)(\"Mention message by invalid ID in Spark\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getHeaders)();",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getMessageElements)(JSON.parse(responseBody));",
+							"    ",
+							"    ",
+							"    ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{spark_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"roomId\" : \"{{_room}}\",\r\n  \"markdown\" : \"<@personId:12345|{{emulator_person2_nickname}}> This is a mention for {{emulator_person2_display_name}}\"\r\n}"
+				},
+				"url": {
+					"raw": "{{API_URL}}/messages",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"messages"
+					]
+				},
+				"description": "Posts a plain text or markdown message, and optionally, a media content attachment, to a room.\n\nTo get more info about message formatting, check https://developer.ciscospark.com/formatting-messages.html\n\nhttps://developer.ciscospark.com/endpoint-messages-post.html\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Emulator @mention by id with invalid ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a9663fec-bf93-4979-b086-acf3ab3c420d",
+						"type": "text/javascript",
+						"exec": [
+							"eval(globals.commonTests)(\"Mention message by invalid ID in Emulator\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.compareHeaders)();",
+							"// Collect the headers from the real Spark call",
+							"let sparkIds = [\"12345\"];",
+							"let emulatorIds = [\"1234\"];",
+							"eval(globals.compareMessageElements)(JSON.parse(responseBody), sparkIds, emulatorIds);",
+							"",
+							"    ",
+							"",
+							"    ",
+							"    ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{emulator_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"roomId\" : \"{{_emulatorRoom}}\",\r\n  \"markdown\" : \"<@personId:1234|{{emulator_person2_nickname}}> This is a mention for {{emulator_person2_display_name}}\"\r\n}"
+				},
+				"url": {
+					"raw": "{{EMULATOR_URL}}/messages",
+					"host": [
+						"{{EMULATOR_URL}}"
+					],
+					"path": [
+						"messages"
+					]
+				},
+				"description": "Posts a plain text or markdown message, and optionally, a media content attachment, to a room.\n\nTo get more info about message formatting, check https://developer.ciscospark.com/formatting-messages.html\n\nhttps://developer.ciscospark.com/endpoint-messages-post.html\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Spark @mention by email someone not in room",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "07cdd245-2529-48b3-a0bc-068b2f1a26b3",
+						"type": "text/javascript",
+						"exec": [
+							"eval(globals.commonTests)(\"Mention message by email not in room in Spark\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getHeaders);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getMessageElements)(JSON.parse(responseBody));",
+							"    ",
+							"    ",
+							"    ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{spark_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"roomId\" : \"{{_room}}\",\r\n  \"markdown\" : \"<@personEmail:{{person2_email}}|{{emulator_person2_nickname}}> This is a mention for {{emulator_person2_display_name}}\"\r\n}"
+				},
+				"url": {
+					"raw": "{{API_URL}}/messages",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"messages"
+					]
+				},
+				"description": "Posts a plain text or markdown message, and optionally, a media content attachment, to a room.\n\nTo get more info about message formatting, check https://developer.ciscospark.com/formatting-messages.html\n\nhttps://developer.ciscospark.com/endpoint-messages-post.html\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Emulator @mention by email someone not in room",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "53fba5a2-0344-410f-b601-e2a8cfffa6b6",
+						"type": "text/javascript",
+						"exec": [
+							"",
+							"// Run the common tests for the create room request",
+							"eval(globals.commonTests)(\"Mention message by email not in room in Emulator\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.compareHeaders)();",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.compareMessageElements)(JSON.parse(responseBody));",
+							"",
+							"    ",
+							"",
+							"    ",
+							"    ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{emulator_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"roomId\" : \"{{_emulatorRoom}}\",\r\n  \"markdown\" : \"<@personEmail:{{emulator_person2_email}}|{{emulator_person2_nickname}}> This is a mention for {{emulator_person2_display_name}}\"\r\n}"
+				},
+				"url": {
+					"raw": "{{EMULATOR_URL}}/messages",
+					"host": [
+						"{{EMULATOR_URL}}"
+					],
+					"path": [
+						"messages"
+					]
+				},
+				"description": "Posts a plain text or markdown message, and optionally, a media content attachment, to a room.\n\nTo get more info about message formatting, check https://developer.ciscospark.com/formatting-messages.html\n\nhttps://developer.ciscospark.com/endpoint-messages-post.html\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Spark Add Person2 to the room",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "1fdd112f-19eb-47c0-b49f-c8ec7d4ee675",
+						"type": "text/javascript",
+						"exec": [
+							"// First, run the common tests",
+							"eval(globals.commonTests)(\"Spark: Add Person2 to room\", 200);",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{spark_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"roomId\": \"{{_room}}\",\r\n\t\"personId\": \"{{person2_id}}\",\r\n    \"isModerator\": false\r\n}"
+				},
+				"url": {
+					"raw": "{{API_URL}}/memberships",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"memberships"
+					]
+				},
+				"description": "Adds the bot to the previously created room.   Note that the bot is added via the personId element in the body.  The cisco spark emulator does not fully support referring to users via email yet.\n\nThe bot's person id should be specified in the bot_id environment variable.\n\nNo bot response is expected to this test."
+			},
+			"response": []
+		},
+		{
+			"name": "Emulator Add Person2 to the room",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "67974518-c083-4c58-a7d7-e3cda903093a",
+						"type": "text/javascript",
+						"exec": [
+							"// First, run the common tests",
+							"eval(globals.commonTests)(\"Emulator: Add Person2 to room\", 200);",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{emulator_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"roomId\": \"{{_emulatorRoom}}\",\r\n\t\"personId\": \"{{emulator_person2_id}}\",\r\n    \"isModerator\": false\r\n}"
+				},
+				"url": {
+					"raw": "{{EMULATOR_URL}}/memberships",
+					"host": [
+						"{{EMULATOR_URL}}"
+					],
+					"path": [
+						"memberships"
+					]
+				},
+				"description": "Adds the bot to the previously created room.   Note that the bot is added via the personId element in the body.  The cisco spark emulator does not fully support referring to users via email yet.\n\nThe bot's person id should be specified in the bot_id environment variable.\n\nNo bot response is expected to this test."
+			},
+			"response": []
+		},
+		{
+			"name": "Spark markdown message with personId mention and wrong name",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "1f898636-71c0-4784-a64e-56d04d49b21a",
+						"type": "text/javascript",
+						"exec": [
+							"eval(globals.commonTests)(\"Mention message by id and custom name in Spark\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getHeaders)();",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getMessageElements)(JSON.parse(responseBody));",
+							"    ",
+							"    ",
+							"    ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{spark_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"roomId\" : \"{{_room}}\",\r\n  \"markdown\" : \"<@personId:{{person2_id}}|Made up name> This is a mention for JP, aka Made up Name\"\r\n}"
+				},
+				"url": {
+					"raw": "{{API_URL}}/messages",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"messages"
+					]
+				},
+				"description": "Posts a plain text or markdown message, and optionally, a media content attachment, to a room.\n\nTo get more info about message formatting, check https://developer.ciscospark.com/formatting-messages.html\n\nhttps://developer.ciscospark.com/endpoint-messages-post.html\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Emulator markdown message with personId mention and wrong name",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "dc2af488-e2e7-456e-a83c-d0b2fe7a5a7f",
+						"type": "text/javascript",
+						"exec": [
+							"// Run the common tests for the create room request",
+							"eval(globals.commonTests)(\"Mention message by id and custom name in Emulator\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.compareHeaders)();",
+							"",
+							"// Compare the results with the real spark call",
+							"let sparkIds = [postman.getEnvironmentVariable('person2_id')];",
+							"let emulatorIds = [postman.getEnvironmentVariable('emulator_person2_id')];",
+							"console.log(sparkIds);",
+							"",
+							"eval(globals.compareMessageElements)(JSON.parse(responseBody), sparkIds, emulatorIds);",
+							"",
+							"    ",
+							"",
+							"    ",
+							"    ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{emulator_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"roomId\" : \"{{_emulatorRoom}}\",\r\n  \"markdown\" : \"<@personId:{{emulator_person2_id}}|Made up name> This is a mention for JP, aka Made up Name\"\r\n}"
+				},
+				"url": {
+					"raw": "{{EMULATOR_URL}}/messages",
+					"host": [
+						"{{EMULATOR_URL}}"
+					],
+					"path": [
+						"messages"
+					]
+				},
+				"description": "Posts a plain text or markdown message, and optionally, a media content attachment, to a room.\n\nTo get more info about message formatting, check https://developer.ciscospark.com/formatting-messages.html\n\nhttps://developer.ciscospark.com/endpoint-messages-post.html\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Spark markdown message with two personId mentions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "f89f6dda-12fc-48a1-a9f5-00e012cb57d3",
+						"type": "text/javascript",
+						"exec": [
+							"eval(globals.commonTests)(\"Mention message with two people Spark\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getHeaders)();",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getMessageElements)(JSON.parse(responseBody));",
+							"    ",
+							"    ",
+							"    ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{spark_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"roomId\" : \"{{_room}}\",\r\n  \"markdown\" : \"<@personId:{{tester_id}}|JP>, <@personId:{{person2_id}}|Another person>, This is a mention for JP and another person\"\r\n}"
+				},
+				"url": {
+					"raw": "{{API_URL}}/messages",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"messages"
+					]
+				},
+				"description": "Posts a plain text or markdown message, and optionally, a media content attachment, to a room.\n\nTo get more info about message formatting, check https://developer.ciscospark.com/formatting-messages.html\n\nhttps://developer.ciscospark.com/endpoint-messages-post.html\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Emulator markdown message with two personId mentions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "0f4367d7-63fc-4632-b285-8e811c3a93d9",
+						"type": "text/javascript",
+						"exec": [
+							"eval(globals.commonTests)(\"Mention message with two people Emulator\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.compareHeaders)();",
+							"// Collect the headers from the real Spark call",
+							"let sparkIds = [postman.getEnvironmentVariable('tester_id'), postman.getEnvironmentVariable('person2_id')];",
+							"let emulatorIds = [postman.getEnvironmentVariable('emulator_id'), postman.getEnvironmentVariable('emulator_person2_id')];",
+							"eval(globals.compareMessageElements)(JSON.parse(responseBody), sparkIds, emulatorIds);",
+							"    ",
+							"    ",
+							"    ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{emulator_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"roomId\" : \"{{_emulatorRoom}}\",\r\n  \"markdown\" : \"<@personId:{{emulator_id}}|JP>, <@personId:{{emulator_person2_id}}|Another person>, This is a mention for JP and another person\"\r\n}"
+				},
+				"url": {
+					"raw": "{{EMULATOR_URL}}/messages",
+					"host": [
+						"{{EMULATOR_URL}}"
+					],
+					"path": [
+						"messages"
+					]
+				},
+				"description": "Posts a plain text or markdown message, and optionally, a media content attachment, to a room.\n\nTo get more info about message formatting, check https://developer.ciscospark.com/formatting-messages.html\n\nhttps://developer.ciscospark.com/endpoint-messages-post.html\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Create a markdown message with a mention",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "d5581fb1-a389-4fff-9818-8a5aae927f59",
+						"type": "text/javascript",
+						"exec": [
+							"// Run the common tests for the create room request",
+							"eval(globals.commonTests)(\"Markdown message with mention in Spark\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getHeaders)();",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.getMessageElements)(JSON.parse(responseBody));",
+							"    ",
+							"    ",
+							"    ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{spark_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"roomId\" : \"{{_room}}\",\r\n  \"markdown\" : \"# Message Formatting!\\nSpark clients now render rich text; enabling bots and integrations to communicate business data in a way that's fun to read and easy on the eyes!\\n\\n## Styling Text\\nMessages are styled using [Markdown](https://daringfireball.net/projects/markdown/syntax) syntax allowing text to be emphasized in **bold**, *italics* on `in-line code`.\\n\\n### Fenced Code Blocks\\nSpark can now also render fenced code blocks using triple backticks (aka GitHub Flavored Markdown)\\n\\n```\\nsource 'https://github.com/CocoaPods/Specs.git'\\nplatform :ios, '8.0'\\nuse_frameworks!\\n\\npost_install do |installer|\\n  installer.pods_project.targets.each do |target|\\n    target.build_configurations.each do |config|\\n      config.build_settings['ENABLE_BITCODE'] = 'NO'\\n    end\\n  end\\nend\\n\\ntarget 'SparkBnB' do\\n  pod 'SparkSDK', :path => '../'\\n  pod 'Toast-Swift', '~> 1.1.0'\\nend\\n```\\n\\n### Lists\\n\\nLists are a great way to organize information or present options to your audience.\\n\\nOrderd Lists\\n1. List Item\\n2. List Item\\n3. List Item\\n\\nUnordered Lists\\n* List Item\\n* List Item\\n* List Item\\n\\n### Block Quotes\\n\\n> Quoting is a super powerful way for bots to respond to a message that happened a while back in the conversation.   And here is a mention for <@personId:{{person2_id}}|JP>.  Hope you like it\"\r\n}"
+				},
+				"url": {
+					"raw": "{{API_URL}}/messages",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"messages"
+					]
+				},
+				"description": "Posts a plain text or markdown message, and optionally, a media content attachment, to a room.\n\nTo get more info about message formatting, check https://developer.ciscospark.com/formatting-messages.html\n\nhttps://developer.ciscospark.com/endpoint-messages-post.html\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Emulator Create a markdown message with a mention",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "571e2b37-01d6-49f0-bb17-7494ad617a7d",
+						"type": "text/javascript",
+						"exec": [
+							"eval(globals.commonTests)(\"Mention message with mention Emulator\", 200);",
+							"// Collect the headers from the real Spark call",
+							"eval(globals.compareHeaders)();",
+							"// Compare the results with the real spark call",
+							"let sparkIds = [postman.getEnvironmentVariable('person2_id')];",
+							"let emulatorIds = [postman.getEnvironmentVariable('emulator_person2_id')];",
+							"console.log(sparkIds);",
+							"",
+							"eval(globals.compareMessageElements)(JSON.parse(responseBody), sparkIds, emulatorIds);",
+							"    ",
+							"    ",
+							"    ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{emulator_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"roomId\" : \"{{_emulatorRoom}}\",\r\n  \"markdown\" : \"# Message Formatting!\\nSpark clients now render rich text; enabling bots and integrations to communicate business data in a way that's fun to read and easy on the eyes!\\n\\n## Styling Text\\nMessages are styled using [Markdown](https://daringfireball.net/projects/markdown/syntax) syntax allowing text to be emphasized in **bold**, *italics* on `in-line code`.\\n\\n### Fenced Code Blocks\\nSpark can now also render fenced code blocks using triple backticks (aka GitHub Flavored Markdown)\\n\\n```\\nsource 'https://github.com/CocoaPods/Specs.git'\\nplatform :ios, '8.0'\\nuse_frameworks!\\n\\npost_install do |installer|\\n  installer.pods_project.targets.each do |target|\\n    target.build_configurations.each do |config|\\n      config.build_settings['ENABLE_BITCODE'] = 'NO'\\n    end\\n  end\\nend\\n\\ntarget 'SparkBnB' do\\n  pod 'SparkSDK', :path => '../'\\n  pod 'Toast-Swift', '~> 1.1.0'\\nend\\n```\\n\\n### Lists\\n\\nLists are a great way to organize information or present options to your audience.\\n\\nOrderd Lists\\n1. List Item\\n2. List Item\\n3. List Item\\n\\nUnordered Lists\\n* List Item\\n* List Item\\n* List Item\\n\\n### Block Quotes\\n\\n> Quoting is a super powerful way for bots to respond to a message that happened a while back in the conversation.   And here is a mention for <@personId:{{emulator_person2_id}}|JP>.  Hope you like it\"\r\n}"
+				},
+				"url": {
+					"raw": "{{EMULATOR_URL}}/messages",
+					"host": [
+						"{{EMULATOR_URL}}"
+					],
+					"path": [
+						"messages"
+					]
+				},
+				"description": "Posts a plain text or markdown message, and optionally, a media content attachment, to a room.\n\nTo get more info about message formatting, check https://developer.ciscospark.com/formatting-messages.html\n\nhttps://developer.ciscospark.com/endpoint-messages-post.html\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete group room",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "52416ba1-bb5f-4969-932a-2d0461b2a2a1",
+						"type": "text/javascript",
+						"exec": [
+							"if (responseCode.code != 204) {",
+							"    tests[\"Delete a room: failed\"] = false",
+							"}",
+							"else {",
+							"    tests[\"Delete a room: success\"] = true",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{spark_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{API_URL}}/rooms/{{_room}}",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"rooms",
+						"{{_room}}"
+					]
+				},
+				"description": "Deletes the space that we have been working in.\r\n\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Emulator Delete group room",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "52416ba1-bb5f-4969-932a-2d0461b2a2a1",
+						"type": "text/javascript",
+						"exec": [
+							"if (responseCode.code != 204) {",
+							"    tests[\"Delete a room: failed\"] = false",
+							"}",
+							"else {",
+							"    tests[\"Delete a room: success\"] = true",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{emulator_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{EMULATOR_URL}}/rooms/{{_emulatorRoom}}",
+					"host": [
+						"{{EMULATOR_URL}}"
+					],
+					"path": [
+						"rooms",
+						"{{_emulatorRoom}}"
+					]
+				},
+				"description": "Deletes the space that we have been working in.\r\n\r\n"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "618382d1-39b1-443b-a6a3-41e0ca70d2fa",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "739f359c-8dde-4baa-b96b-653d40a1a4a8",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

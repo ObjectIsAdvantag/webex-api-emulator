@@ -105,7 +105,7 @@ function onMessagesCreated(datastore, actor, message) {
                 method: 'POST',
                 url: notification.targetUrl,
                 headers: {
-                    "Content-type": "application/json; charset=UTF-8",
+                    "Content-type": "application/json;charset=UTF-8",
                     "X-Scheduled-For": notification.created,
                     "User-Agent": "Emulator"
                 },
@@ -194,7 +194,7 @@ function onMembershipsCreated(datastore, actor, membership) {
             method: 'POST',
             url: notification.targetUrl,
             headers: {
-                "Content-type": "application/json; charset=UTF-8",
+                "Content-type": "application/json;charset=UTF-8",
                 "X-Scheduled-For": notification.created,
                 "User-Agent": "Emulator"
             },
@@ -281,7 +281,7 @@ function onMembershipsDeleted(datastore, actor, membership) {
             method: 'POST',
             url: notification.targetUrl,
             headers: {
-                "Content-type": "application/json; charset=UTF-8",
+                "Content-type": "application/json;charset=UTF-8",
                 "X-Scheduled-For": notification.created,
                 "User-Agent": "Emulator"
             },

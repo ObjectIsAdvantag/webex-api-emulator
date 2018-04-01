@@ -5,12 +5,15 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "newman run test-cases/CiscoSparkMarkdownTests.postman_collection.json -e test-cases/spark_emulator_tests.postman_environment.json"
   },
   "dependencies": {
     "base-64": "^0.1.0",
     "body-parser": "^1.17.2",
+    "cheerio": "^1.0.0-rc.2",
+    "dotenv": "^5.0.1",
     "express": "^4.15.3",
+    "express-interceptor": "^1.2.0",
     "request": "^2.81.0",
     "uuid": "^3.1.0"
   },
