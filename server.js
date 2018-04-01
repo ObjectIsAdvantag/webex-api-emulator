@@ -33,6 +33,7 @@ app.set("etag", false); // to mimic Cisco Spark headers
 // Middleware to mimic Cisco Spark HTTP headers
 app.use(function (req, res, next) {
     res.setHeader("Cache-Control", "no-cache"); // to mimic Cisco Spark headers
+    res.setHeader("Content-Type", "application/json;charset=UTF-8"); // to mimic Cisco Spark headers
 
     // New Trackingid
     res.locals.trackingId = "EM_" + uuid();

@@ -83,7 +83,10 @@ utils.sendSuccess = function (res, statusCode, body) {
         return;
     }
 
-    res.status(statusCode).send(body);
+    // Send as new buffer to override express auto setting of Content-Type header
+    // We set this manually since Spark does not include a space, ie:
+    // "Content-type": "application/json;charset=UTF-8"
+    res.status(statusCode).send(new Buffer(JSON.stringify(body)));
 }
 
 
