@@ -9,10 +9,13 @@ const uuid = require('uuid/v4');
 const base64 = require('base-64');
 const debug = require("debug")("emulator:storage:messages");
 
+// for manipulating markup
+const MarkdownManipulator = require("./markdown-manipulator");
 
 function MessageStorage(datastore) {
     this.datastore = datastore;
     this.data = {};
+    this.markdownManipulator = new MarkdownManipulator
 }
 
 MessageStorage.prototype.createInRoom = function (actor, room, text, markdown, file, cb) {
@@ -31,24 +34,32 @@ MessageStorage.prototype.createInRoom = function (actor, room, text, markdown, f
         "personId": actor.id,
         "personEmail": actor.emails[0]
     }
-
+    
     // Append markdown properties
     if (markdown) {
-        // [TODO] build raw text from markdown
-        message.text = markdown;
-        message.markdown = markdown;
-        // [TODO] build html from markdown
-        // var md = require('markdown-it')({ html: true })
-        // .use(require('markdown-it-sanitizer'));
-        // md.render('<b>test<p></b>'); // => '<p><b>test</b></p>' 
-        message.html = markdown;
-        // Check if we need to build a mentionedPeople array
-        let mentionedPeople = buildMentionedPeopleArray(markdown);
-        if (mentionedPeople.length) {
-            message.mentionedPeople = mentionedPeople;
+        // Check if there are mentions in the markdown
+        // If so replace the mention markup with the mention name
+        // And add a mentionedPeople array
+        let mentionInfo = this.markdownManipulator.buildMentionedPeopleArray(markdown);
+        if (mentionInfo.mentionedPeople.length) {
+            message.mentionedPeople = mentionInfo.mentionedPeople;
+            message.markdown = mentionInfo.newMarkdown;
+            message.text = this.markdownManipulator.convertMarkdownToHtml(mentionInfo.newText);
+            message.text = message.text.replace(/<(?:.|\n)*?>/gm, '');
+        } else {
+            message.markdown = markdown;
+        }
+        message.html = this.markdownManipulator.convertMarkdownToHtml(message.markdown);
+        if (!message.text) {
+            message.text = message.html.replace(/<(?:.|\n)*?>/gm, '');
         }
     }
-
+    // Spark doesn't like new lines in text!
+    message.text = message.text.replace(/\n/gm, ' ');
+    // Lets convert &gt; to '>' and &lt; to '<'
+    message.text = message.text.replace(/&gt;/gm, '>');
+    message.text = message.text.replace(/&lt;/gm, '<');
+    
     // Store message
     message.created = now;
     this.data[message.id] = message;
@@ -60,8 +71,7 @@ MessageStorage.prototype.createInRoom = function (actor, room, text, markdown, f
     // Emit event
     this.datastore.bus.emit('messages/created', actor, message);
 }
-
-
+        
 MessageStorage.prototype.listAllInRoom = function (actor, roomId, cb) {
 
     assert.ok(actor);
@@ -120,19 +130,5 @@ MessageStorage.prototype.find = function (actor, messageId, cb) {
         }
     });
 }
-
-function buildMentionedPeopleArray(markdown) {
-    let mentionedPeople = [];
-    //TODO -- check for mentioned people by personEmail
-    re = /.*\<@personId\:(.*)\|.*/
-    let personId = markdown.replace(re, '$1');
-    if (personId) {
-        mentionedPeople.push(personId)
-    }
-    //TODO -- This just gets the last mentioned person if multiples are mentioned
-    // Figure out how to get all of them!
-    return mentionedPeople
-}
-
 
 module.exports = MessageStorage;

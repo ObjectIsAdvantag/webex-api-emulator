@@ -202,8 +202,10 @@ router.get("/:id", function (req, res) {
                     debug("message ${messageId} not found.")
                     // Note that this is the message returned by Cisco Spark, time of this writing
                     return sendError(res, 404, "Unable to delete message.");
-                case "ROOM_NOT_FOUND":
                 case "USER_NOT_IN_ROOM":
+                    debug("User is not a member of the room associated with provided message ID.")
+                    return sendError(res, 404, "Unable to get message.");
+                case "ROOM_NOT_FOUND":
                     debug("Could not find a room with provided ID.")
                     return sendError(res, 404, "Could not find a room with provided ID.");
                 default:
