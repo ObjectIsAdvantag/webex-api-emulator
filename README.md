@@ -1,15 +1,15 @@
-# mini-spark: an Emulator for Cisco Spark REST API
+# an Emulator for Webex REST API
 
-The primary goal of the emulator is to build Cisco Spark chat bots.
+The primary goal of the emulator is to buildWebex Teams chat bots.
 Therefore, the emulator mimics Cisco Spark REST API behavior for /rooms, /messages, /memberships and /webhooks resources.
 
-The following features are NOT implemented: Messages Attachements, Room moderation, People LastActivity & Status and Pagination, as well as Teams, Automatic Invitations (if non Spark users are added to rooms) and Administration APIs, 
+The following features are NOT implemented: Messages Attachements, Room moderation, People LastActivity & Status and Pagination, as well as Teams, Automatic Invitations (if non Webex Teams users are added to spaces) and Administration APIs. 
 
 The emulator can be used for several purposes:
-- testing: on a developer laptop machine or on a CI environment to run a battery of test with no connection to Cisco Spark, and without 409 (Rate Limitations),
-- QA: run your code against a stable version of Cisco Spark (as the Cloud Service is incrementally upgraded, some bugs can be hard to replay. The emulator complies with a version of the API at a specific date, and helps reproduce an issue, or test for an upcoming feature (not released yet or toggled on)
+- testing: on a developer laptop machine or on a CI environment to run a battery of tests with no connection to Webex. Note that 429 (Rate Limitations) won't be raised by the emulator.
+- QA: run your code against a stable version of Webex (as the Cloud Service is incrementally upgraded, some bugs can be hard to replay. The emulator complies with a version of the API at a specific date, and helps reproduce an issue, or test for an upcoming feature (not released yet or toggled on)
 - Training: backup plan in case of low or no connectivity location
-- QA: simulate specific behaviors or errors from CiscoSpark (429, 500, 503)
+- QA: simulate specific behaviors or errors from Webex (429, 500, 503)
 
 
 ## Give it a try from Heroku
@@ -20,7 +20,7 @@ To give it a try to the emulator, pick a user and bot token from the list availa
 
 _when hitting the API, leave it up to 30 seconds to wake up_
 
-Make standard Cisco Spark API calls, simply point to https://mini-spark.herokuapp.com.
+Make standard Webex REST API calls, simply point to https://mini-spark.herokuapp.com.
 
 Check instructions below to load a postman collection with the supported API calls.
 
@@ -30,23 +30,23 @@ Check instructions below to load a postman collection with the supported API cal
 - Install and run the emulator on your local machine (starts on port 3210 by default)
 
 ```shell
-git clone https://github.com/ObjectIsAdvantag/spark-emulator
-cd spark-emulator
+git clone https://github.com/ObjectIsAdvantag/webex-api-emulator
+cd webex-api-emulator
 npm install
 DEBUG="emulator*" node server.js
 ```
 
 
-- The emulator loads with a [static list](tokens.json) of Cisco Spark User and Bots accounts.
+- The emulator loads with a [static list](tokens.json) of Webex User and Bot accounts.
 
     [Optional] update file 'tokens.json' with some fake access tokens you want the emulator to accept. 
-    DO NOT USE FILL IN REAL SPARK ACCESS TOKENS.
+    DO NOT USE FILL IN REAL WEBEX ACCESS TOKENS.
     Generally, you'll want to put in your name, email and organisation identifiers as well as your bot's information. 
     
 
-- Invoke Cisco Spark API Resources on default port http://localhost:3210, with a user of bot token from 'tokens.json'
+- Invoke Webex REST API Resources on default port http://localhost:3210, with a user of bot token from 'tokens.json'
 
-   - GET  /people/me           shows spark account details
+   - GET  /people/me           shows your Webex account details
    - POST /rooms               create a new room
    - POST /rooms               create another room
    - GET  /rooms               shows your rooms (2)
@@ -58,14 +58,14 @@ DEBUG="emulator*" node server.js
    - POST /webhooks            register a new webhook pointing to a target URL on your local machine, or on the internet
 
 
-- The emulator comes with a Postman collection companion to quickly run requests againt the Emulator, and easilly switch back and forth between the emulator and the Cisco Spark API. To install the postman collection:
+- The emulator comes with a Postman collection companion to quickly run requests againt the Emulator, and easilly switch back and forth between the emulator and the Webex REST API. To install the postman collection:
 
     - Import the collection into Postman by [clicking this link](https://www.getpostman.com/collections/c76412ea237207555b57), or with the "import collection" feature
     
-    - setup an environment with 4 variables: endpoint, spark_token, bot_token, bot_email
+    - setup an environment with 4 variables: endpoint, access_token, bot_token, bot_email
        - endpoint: http://127.0.0.1:3210 (in place of https://api.ciscospark.com/v1)
-       - spark_token: the access token of a Cisco Spark Human user
-       - bot_token: the access token of a Cisco Spark Bot account
+       - access_token: the access token of a Webex User
+       - bot_token: the access token of a Webex Bot account
        - bot_email: the email of the bot (for the user to invite it)
 
-    Note that values for `spark_token`, `bot_token` and `bot_email` must be part of the tokens.json file
+    Note that values for `access_token`, `bot_token` and `bot_email` must be part of the tokens.json file

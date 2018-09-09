@@ -5,7 +5,7 @@
 
 
 /* 
- * Watches for Spark activities, checks if webhooks are registered and sends notifications
+ * Watches for actions in Webex, checks if webhooks are registered and sends notifications
  */
 
 const assert = require("assert");

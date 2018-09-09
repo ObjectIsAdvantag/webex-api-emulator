@@ -148,7 +148,7 @@ MembershipStorage.prototype.listMembershipsForRoom = function (actor, roomId, cb
     }
 
     // Sort by creation date DESC
-    // [TODO] check Spark ordering
+    // [TODO] check Webex ordering
     list = list.sort(function (a, b) {
         return (a.created < b.created);
     });
@@ -173,7 +173,7 @@ MembershipStorage.prototype.listUserMemberships = function (actor, cb) {
     });
 
     // Sort by creation date DESC
-    // [TODO] check Spark ordering
+    // [TODO] check Webex ordering
     list = list.sort(function (a, b) {
         return (a.created < b.created);
     });

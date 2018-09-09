@@ -7,7 +7,7 @@
 const debug = require("debug")("emulator:messages");
 const express = require("express");
 
-// default routing properties to mimic Cisco Spark
+// default routing properties to mimic Webex Teams
 const router = express.Router({ "caseSensitive": true, "strict": false });
 
 // for parsing application/json
@@ -84,7 +84,7 @@ router.post("/", function (req, res) {
                 }
 
                 // Return payload
-                // Note that Cisco Spark returns 200 OK and not a 201 CREATED here
+                // Note that Webex returns 200 OK and not a 201 CREATED here
                 return sendSuccess(res, 200, message);
             });
         });
@@ -106,26 +106,26 @@ router.post("/", function (req, res) {
             db.memberships.create(actor, roomId, toPersonId, isModerator, function (err, membership) {
                 if (!err) {
                     // Return payload
-                    // Note that Cisco Spark returns 200 OK and not a 201 CREATED here
+                    // Note that Webex returns 200 OK and not a 201 CREATED here
                     return sendSuccess(res, 200, membership);
                 }
     
                 switch (err.code) {
                     case "NOT_A_MEMBER":
                         debug(`room not found for identifier: ${roomId}`);
-                        // Note that I was expecting to return a 404 or 403, but, this is the current answer from Spark
+                        // Note that I was expecting to return a 404 or 403, but, this is the current answer from Webex
                         return sendError(res, 502, "Add participant failed.");
                     case "ALREADY_A_MEMBER":
                         debug(`person: ${personId} is already a member of room: ${roomId}`);
-                        // Note that I was expecting to return a 404 or 403, but, this is the current answer from Spark
+                        // Note that I was expecting to return a 404 or 403, but, this is the current answer from Webex
                         return sendError(res, 409, "Person is already in the room.");
                     case "PERSON_NOT_FOUND":
                         debug(`person not found`);
-                        // This is the current answer from Spark
+                        // This is the current answer from Webex
                         return sendError(res, 400, "Expect base64 ID or UUID.");
                     default:
                         debug("could not add membership for another reason");
-                        // This is the current answer from Spark
+                        // This is the current answer from Webex
                         return sendError(res, 400, "[EMULATOR] could not add membership");
                 }
             });
@@ -157,7 +157,7 @@ router.get("/", function (req, res) {
         if (err) {
             switch (err.code) {
                 case "ROOM_NOT_FOUND":
-                    debug("room not found, answering 400 as per Cisco Spark API");
+                    debug("room not found, answering 400 as per Webex Teams API");
                     sendError(res, 400, "Expect base64 ID or UUID.");
                     return;
                 default:
@@ -200,7 +200,7 @@ router.get("/:id", function (req, res) {
             switch (err.code) {
                 case "MESSAGE_NOT_FOUND":
                     debug("message ${messageId} not found.")
-                    // Note that this is the message returned by Cisco Spark, time of this writing
+                    // Note that this is the message returned by Webex, time of this writing
                     return sendError(res, 404, "Unable to delete message.");
                 case "ROOM_NOT_FOUND":
                 case "USER_NOT_IN_ROOM":

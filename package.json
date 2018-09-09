@@ -1,7 +1,7 @@
 {
-  "name": "spark-emulator",
-  "version": "0.1.1",
-  "description": "Emulator of Cisco Spark REST API",
+  "name": "webex-api-emulator",
+  "version": "0.2.0",
+  "description": "Emulator of Cisco Webex Teams REST API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -9,17 +9,17 @@
   },
   "dependencies": {
     "base-64": "^0.1.0",
-    "body-parser": "^1.17.2",
-    "express": "^4.15.3",
-    "request": "^2.81.0",
-    "uuid": "^3.1.0"
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "request": "^2.88.0",
+    "uuid": "^3.3.2"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ObjectIsAdvantag/spark-emulator.git"
+    "url": "https://github.com/ObjectIsAdvantag/webex-api-emulator.git"
   },
   "keywords": [
-    "ciscospark",
+    "webexteams",
     "emulator"
   ],
   "author": "Stève Sfartz (Cisco DevNet) <stsfartz@cisco.com>",
