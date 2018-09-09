@@ -8,7 +8,7 @@ const assert = require("assert");
 var utils = {};
 
 /*
- * Transmits an error with the Cisco Spark format    
+ * Transmits an error with the Webex Teams format    
  * {
  *     "message": "Content type 'application/xml' not supported",
  *     "errors": [

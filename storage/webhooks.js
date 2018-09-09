@@ -107,7 +107,7 @@ WebhookStorage.prototype.delete = function (actor, webhookId, cb) {
     // If we made it here delete the room itself
     delete (this.data[webhookId]);
 
-    // GOOD TO KNOW: Spark does not seem to generate an event for deleted webhook
+    // GOOD TO KNOW: Webex does not seem to generate an event for deleted webhook
 
     if (cb) {
         cb(null, null);

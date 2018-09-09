@@ -7,7 +7,7 @@
 const debug = require("debug")("emulator:people");
 const express = require("express");
 
-// default routing properties to mimic Cisco Spark
+// default routing properties to mimic Webex Teams
 const router = express.Router({ "caseSensitive": true, "strict": false });
 
 // for parsing application/json

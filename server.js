@@ -29,11 +29,11 @@ const Controller = require("./controller");
 const controller = new Controller(bus, datastore);
 
 
-app.set("x-powered-by", false); // to mimic Cisco Spark headers
-app.set("etag", false); // to mimic Cisco Spark headers
-// Middleware to mimic Cisco Spark HTTP headers
+app.set("x-powered-by", false); // to mimic Webex Teams headers
+app.set("etag", false); // to mimic Webex Teams headers
+// Middleware to mimic Webex Teams HTTP headers
 app.use(function (req, res, next) {
-    res.setHeader("Cache-Control", "no-cache"); // to mimic Cisco Spark headers
+    res.setHeader("Cache-Control", "no-cache"); // to mimic Webex Teams headers
 
     // New Trackingid
     res.locals.trackingId = "EM_" + uuid();
@@ -72,12 +72,12 @@ app.locals.started = new Date(Date.now()).toISOString();
 var props = require('./package.json');
 app.get("/", function(req, res) {
     res.status(200).send({
-        "service" : "Mini-Spark",
+        "service" : "Webex REST API Emulator",
         "description" : props.description,
         "version" : props.version,
         "up-since" : app.locals.started,
         "creator" : props.author,
-        "code": "https://github.com/ObjectIsAdvantag/mini-spark",
+        "code": "https://github.com/ObjectIsAdvantag/webex-api-emulator",
         "tokens" : "/tokens",
         "resources": [
             "/people", "/rooms", "/memberships", "/messages", "/webhooks"

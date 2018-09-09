@@ -197,7 +197,7 @@ RoomStorage.prototype.delete = function (actor, membershipList, roomId, cb) {
         // Finally delete the room itself
         delete (self.data[roomId]);
 
-        // GOOD TO KNOW: Spark does not seem to generate an event for deleted room
+        // GOOD TO KNOW: Webex does not seem to generate an event for deleted room
         // (but it does delete one for each deleted membership  )
 
         if (cb) {

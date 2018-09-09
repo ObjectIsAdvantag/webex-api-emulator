@@ -7,7 +7,7 @@
 const debug = require("debug")("emulator:webhooks");
 const express = require("express");
 
-// default routing properties to mimic Cisco Spark
+// default routing properties to mimic Webex Teams
 const router = express.Router({ "caseSensitive": true, "strict": false });
 
 // for parsing application/json
@@ -66,7 +66,7 @@ router.post("/", function (req, res) {
         }
 
         // Return payload
-        // Note that Cisco Spark returns 200 OK and not a 201 CREATED here
+        // Note that Webex returns 200 OK and not a 201 CREATED here
         return sendSuccess(res, 200, webhook);
     });
 });
