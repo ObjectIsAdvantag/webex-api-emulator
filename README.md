@@ -5,7 +5,6 @@ _Disclaimer: This is not an official Cisco product._
 **Table of Contents**
 
 * [What is the Webex API Emulator?](#what-is-the-webex-api-emulator)
-* [How do I get started?](#how-do-i-get-started)
 * [Try it live](#try-it-live)
 * [Run it locally](#run-it-locally)
 * [Get the Postman collection](#get-the-postman-collection)
@@ -82,10 +81,14 @@ The emulator comes with a Postman collection companion to quickly run requests a
 
 To install the postman collection:
 - import the collection into Postman by [clicking this link](https://www.getpostman.com/collections/c76412ea237207555b57), or with the "import collection" feature 
-- setup an environment with 4 variables: endpoint, access_token, bot_token, bot_email
+- create a new Webex Emulator (miniweb) environement, and from the INIT folder, run the "load env variables (miniwebex)" to initialize your environment
+- you are good to go, use the requests folders and interact with the emulator
+
+Extra steps to run the collection against a local environment
+- setup an environment with 4 variables: endpoint, user_token, bot_token, bot_email
     - endpoint: http://127.0.0.1:3210 (in place of https://api.ciscospark.com/v1)
-    - access_token: the access token of a Webex User
+    - user_token: the access token of a Webex User
     - bot_token: the access token of a Webex Bot account
     - bot_email: the email of the bot (for the user to invite it)
 
-Note that values for `access_token`, `bot_token` and `bot_email` must be part of your emulator's [tokens configuration](./tokens.json) file
+Note that values for `user_token`, `bot_token` and `bot_email` must be part of your emulator's [tokens configuration](./tokens.json) file
