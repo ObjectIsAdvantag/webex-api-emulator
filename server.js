@@ -74,7 +74,7 @@ app.get("/", function(req, res) {
     res.status(200).send({
         "service" : "Webex REST API Emulator",
         "description" : props.description,
-        "version" : props.version,
+        "version" : 'v' + props.version,
         "up-since" : app.locals.started,
         "creator" : props.author,
         "code": "https://github.com/ObjectIsAdvantag/webex-api-emulator",

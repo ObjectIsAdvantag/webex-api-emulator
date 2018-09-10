@@ -1,8 +1,22 @@
-# an Emulator for Webex REST API
+# a local emulator for Webex REST API
 
-The primary goal of the emulator is to buildWebex Teams chat bots.
-Therefore, the emulator mimics Cisco Spark REST API behavior for /rooms, /messages, /memberships and /webhooks resources.
+_Disclaimer: This is not an official Cisco product._
 
+**Table of Contents**
+
+* [What is the Webex API Emulator?](#what-is-the-webex-api-emulator)
+* [How do I get started?](#how-do-i-get-started)
+* [Try it live](#try-it-live)
+* [Run it locally](#run-it-locally)
+* [Get the Postman collection](#get-the-postman-collection)
+* [License](./LICENSE)
+
+
+## What is the Webex API Emulator?
+
+The primary use case of this emulator is to test and debug Webex Teams chat bots.
+
+The emulator mimics some of the Webex Teams REST API resources: /rooms, /messages, /memberships and /webhooks.
 The following features are NOT implemented: Messages Attachements, Room moderation, People LastActivity & Status and Pagination, as well as Teams, Automatic Invitations (if non Webex Teams users are added to spaces) and Administration APIs. 
 
 The emulator can be used for several purposes:
@@ -12,22 +26,27 @@ The emulator can be used for several purposes:
 - QA: simulate specific behaviors or errors from Webex (429, 500, 503)
 
 
-## Give it a try from Heroku
+## Try it live
 
-The emulator is accessible at "https://mini-spark.herokuapp.com" via Heroku free dynos.
+The emulator is accessible at "https://miniwebex.herokuapp.com". 
 
-To give it a try to the emulator, pick a user and bot token from the list available at https://mini-spark.herokuapp.com/tokens".
+_Note that the emulator is deployed as Heroku free dynos: leave it up to 30 seconds to wake up._
 
-_when hitting the API, leave it up to 30 seconds to wake up_
+To give it a try, you'll need an access token.
+You can pick a user or bot token from the map proposed at "https://miniwebex.herokuapp.com/tokens". The entry in the map corresponds to the token of the user.
 
-Make standard Webex REST API calls, simply point to https://mini-spark.herokuapp.com.
+Then, you're ready to make standard [Webex REST API calls](https://developer.webex.com/getting-started.html) to the 'Mini-Webex' root endpoint.
+
+```
+curl -s -H "Authorization: Bearer 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" -X GET https://miniwebex.herokuapp.com/people/me
+```
 
 Check instructions below to load a postman collection with the supported API calls.
 
 
-## Quickstart
+## Run it locally
 
-- Install and run the emulator on your local machine (starts on port 3210 by default)
+Install and run the emulator on your local machine (starts on port 3210 by default)
 
 ```shell
 git clone https://github.com/ObjectIsAdvantag/webex-api-emulator
@@ -36,15 +55,14 @@ npm install
 DEBUG="emulator*" node server.js
 ```
 
-
-- The emulator loads with a [static list](tokens.json) of Webex User and Bot accounts.
+The emulator loads with a [static list](./tokens.json) of Webex User and Bot accounts.
 
     [Optional] update file 'tokens.json' with some fake access tokens you want the emulator to accept. 
-    DO NOT USE FILL IN REAL WEBEX ACCESS TOKENS.
-    Generally, you'll want to put in your name, email and organisation identifiers as well as your bot's information. 
-    
+    **DO NOT USE FILL IN REAL WEBEX ACCESS TOKENS**
+    Generally, you'll want to put in your name, email and organisation identifiers as well as your bot's account information. 
 
-- Invoke Webex REST API Resources on default port http://localhost:3210, with a user of bot token from 'tokens.json'
+All set! 
+Now invoke some of the Webex REST API Resources on default port http://localhost:3210, with token listed in your 'tokens.json' configuration file.
 
    - GET  /people/me           shows your Webex account details
    - POST /rooms               create a new room
@@ -58,14 +76,16 @@ DEBUG="emulator*" node server.js
    - POST /webhooks            register a new webhook pointing to a target URL on your local machine, or on the internet
 
 
-- The emulator comes with a Postman collection companion to quickly run requests againt the Emulator, and easilly switch back and forth between the emulator and the Webex REST API. To install the postman collection:
+## Get the Postman collection
 
-    - Import the collection into Postman by [clicking this link](https://www.getpostman.com/collections/c76412ea237207555b57), or with the "import collection" feature
-    
-    - setup an environment with 4 variables: endpoint, access_token, bot_token, bot_email
-       - endpoint: http://127.0.0.1:3210 (in place of https://api.ciscospark.com/v1)
-       - access_token: the access token of a Webex User
-       - bot_token: the access token of a Webex Bot account
-       - bot_email: the email of the bot (for the user to invite it)
+The emulator comes with a Postman collection companion to quickly run requests againt the Emulator, and easilly switch back and forth between the emulator and the Webex REST API. 
 
-    Note that values for `access_token`, `bot_token` and `bot_email` must be part of the tokens.json file
+To install the postman collection:
+- import the collection into Postman by [clicking this link](https://www.getpostman.com/collections/c76412ea237207555b57), or with the "import collection" feature 
+- setup an environment with 4 variables: endpoint, access_token, bot_token, bot_email
+    - endpoint: http://127.0.0.1:3210 (in place of https://api.ciscospark.com/v1)
+    - access_token: the access token of a Webex User
+    - bot_token: the access token of a Webex Bot account
+    - bot_email: the email of the bot (for the user to invite it)
+
+Note that values for `access_token`, `bot_token` and `bot_email` must be part of your emulator's [tokens configuration](./tokens.json) file
