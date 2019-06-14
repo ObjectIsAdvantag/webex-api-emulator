@@ -15,7 +15,7 @@ function MessageStorage(datastore) {
     this.data = {};
 }
 
-MessageStorage.prototype.createInRoom = function (actor, room, text, markdown, file, cb) {
+MessageStorage.prototype.createInRoom = function (actor, room, text, markdown, file, attachments, cb) {
 
     assert.ok(actor);
     assert.ok(room);
@@ -42,6 +42,11 @@ MessageStorage.prototype.createInRoom = function (actor, room, text, markdown, f
         // .use(require('markdown-it-sanitizer'));
         // md.render('<b>test<p></b>'); // => '<p><b>test</b></p>' 
         message.html = markdown;
+    }
+
+    // Append attachments
+    if (attachments) {
+       message.attachments = attachments;
     }
 
     // Store message

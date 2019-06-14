@@ -49,6 +49,7 @@ router.post("/", function (req, res) {
         debug("Both text and file cannot be empty.");
         return sendError(res, 400, "Both text and file cannot be empty.");
     }
+    const attachments = incoming.attachments;
 
     // Where are we posting ?
     const roomId = incoming.roomId;
@@ -76,7 +77,7 @@ router.post("/", function (req, res) {
                 }
             }
             // Create message
-            db.messages.createInRoom(actor, room, text, markdown, null, function (err, message) {
+            db.messages.createInRoom(actor, room, text, markdown, null, attachments, function (err, message) {
                 if (err) {
                     debug("unexpected error: " + err.message);
                     sendError(res, 500, "[EMULATOR] cannot create room, unexpected error");
