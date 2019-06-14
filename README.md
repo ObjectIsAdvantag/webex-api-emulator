@@ -13,10 +13,10 @@ _Disclaimer: This is not an official Cisco product._
 
 ## What is the Webex API Emulator?
 
-The primary use case of this emulator is to test and debug Webex Teams chat bots.
+The primary use case of this emulator is to test and debug Webex chat bots.
 
-The emulator mimics some of the Webex Teams REST API resources: /rooms, /messages, /memberships and /webhooks.
-The following features are NOT implemented: Messages Attachements, Room moderation, People LastActivity & Status and Pagination, as well as Teams, Automatic Invitations (if non Webex Teams users are added to spaces) and Administration APIs. 
+The emulator mimics some of the Webex REST API resources: /rooms, /messages, /memberships and /webhooks.
+The following features are NOT implemented: Messages Attachements, Room moderation, People LastActivity & Status and Pagination, as well as Teams, Automatic Invitations (if non Webex users are added to spaces) and Administration APIs. 
 
 The emulator can be used for several purposes:
 - testing: on a developer laptop machine or on a CI environment to run a battery of tests with no connection to Webex. Note that 429 (Rate Limitations) won't be raised by the emulator.

@@ -1,7 +1,7 @@
 {
   "name": "webex-api-emulator",
-  "version": "0.2.2",
-  "description": "Emulator of Cisco Webex Teams REST API",
+  "version": "0.2.3",
+  "description": "Emulator of the Cisco Webex REST API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -9,8 +9,8 @@
   },
   "dependencies": {
     "base-64": "^0.1.0",
-    "body-parser": "^1.18.3",
-    "express": "^4.16.3",
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
     "request": "^2.88.0",
     "uuid": "^3.3.2"
   },
@@ -19,7 +19,7 @@
     "url": "https://github.com/ObjectIsAdvantag/webex-api-emulator.git"
   },
   "keywords": [
-    "webexteams",
+    "webex",
     "emulator"
   ],
   "author": "Stève Sfartz (Cisco DevNet) <stsfartz@cisco.com>",

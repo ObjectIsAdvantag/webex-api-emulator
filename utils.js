@@ -8,7 +8,7 @@ const assert = require("assert");
 var utils = {};
 
 /*
- * Transmits an error with the Webex Teams format    
+ * Transmits an error with the Webex format    
  * {
  *     "message": "Content type 'application/xml' not supported",
  *     "errors": [

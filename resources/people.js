@@ -7,7 +7,7 @@
 const debug = require("debug")("emulator:people");
 const express = require("express");
 
-// default routing properties to mimic Webex Teams
+// default routing properties to mimic Webex
 const router = express.Router({ "caseSensitive": true, "strict": false });
 
 // for parsing application/json

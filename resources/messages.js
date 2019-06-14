@@ -7,7 +7,7 @@
 const debug = require("debug")("emulator:messages");
 const express = require("express");
 
-// default routing properties to mimic Webex Teams
+// default routing properties to mimic Webex
 const router = express.Router({ "caseSensitive": true, "strict": false });
 
 // for parsing application/json
@@ -157,7 +157,7 @@ router.get("/", function (req, res) {
         if (err) {
             switch (err.code) {
                 case "ROOM_NOT_FOUND":
-                    debug("room not found, answering 400 as per Webex Teams API");
+                    debug("room not found, answering 400 as per Webex API");
                     sendError(res, 400, "Expect base64 ID or UUID.");
                     return;
                 default:
