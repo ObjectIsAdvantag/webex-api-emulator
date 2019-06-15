@@ -8,7 +8,7 @@ const assert = require("assert");
 const uuid = require('uuid/v4');
 const base64 = require('base-64');
 const removeMd = require('remove-markdown');
-const showdown  = require('showdown');
+const showdown = require('showdown');
 const converter = new showdown.Converter();
 
 const debug = require("debug")("emulator:storage:messages");
@@ -30,22 +30,10 @@ MessageStorage.prototype.createInRoom = function (actor, room, text, markdown, f
    var message = {
       "id": base64.encode("ciscospark://em/MESSAGE/" + uuid()),
       "roomId": room.id,
-      "roomType": room.type,
-      "text": text,
-      "personId": actor.id,
-      "personEmail": actor.emails[0]
+      "roomType": room.type
    }
 
-   // Append markdown properties
-   if (markdown) {
-      message.markdown = markdown;
-      
-      // build raw text from markdown
-      message.text = removeMd(markdown);
-      
-      // build html from markdown 
-      message.html = converter.makeHtml(markdown);
-   }
+   message.text = (text) ? text : removeMd(markdown)
 
    // Append attachments
    if (attachments) {
@@ -53,6 +41,17 @@ MessageStorage.prototype.createInRoom = function (actor, room, text, markdown, f
    }
 
    // Store message
+   message.personId = actor.id;
+   message.personEmail = actor.emails[0];
+
+   // Append markdown properties
+   if (markdown) {
+      message.markdown = markdown;
+
+      // build html from markdown 
+      message.html = converter.makeHtml(markdown);
+   }
+
    message.created = now;
    this.data[message.id] = message;
 
