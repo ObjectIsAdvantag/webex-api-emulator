@@ -61,7 +61,7 @@ router.post("/", function (req, res) {
             return sendError(res, 400, "Exactly one of the destination fields must not be empty (roomId, toPersonEmail, toPersonId)");
         }
 
-        // Check the user is part of the room
+        // Verify the user is part of the room
         db.rooms.find(actor, roomId, function (err, room) {
             if (err) {
                 switch (err.code) {

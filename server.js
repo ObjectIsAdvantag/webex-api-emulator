@@ -64,6 +64,8 @@ const membershipsAPI = require("./resources/memberships");
 app.use("/memberships", membershipsAPI);
 const messagesAPI = require("./resources/messages");
 app.use("/messages", messagesAPI);
+const attachmentActionsAPI = require("./resources/attachmentActions");
+app.use("/attachmentActions", attachmentActionsAPI);
 const webhooksAPI = require("./resources/webhooks");
 app.use("/webhooks", webhooksAPI);
 
@@ -80,7 +82,7 @@ app.get("/", function(req, res) {
         "code": "https://github.com/ObjectIsAdvantag/webex-api-emulator",
         "tokens" : "/tokens",
         "resources": [
-            "/people", "/rooms", "/memberships", "/messages", "/webhooks"
+            "/people", "/rooms", "/memberships", "/messages", "/attachmentActions", "/webhooks"
         ]
     });
 });
