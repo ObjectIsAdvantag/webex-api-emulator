@@ -313,13 +313,13 @@ function onMembershipsDeleted(datastore, actor, membership) {
     });
 }
 
-function onAttachmentActionsCreated(datastore, actor, message) {
+function onAttachmentActionsCreated(datastore, actor, action) {
    assert(datastore);
    assert(actor);
-   assert(message);
+   assert(action);
 
    // Are there participants in the room interested by the event ?
-   datastore.memberships.listMembershipsForRoom(actor, message.roomId, function (err, memberships) {
+   datastore.memberships.listMembershipsForRoom(actor, action.roomId, function (err, memberships) {
        if (err) {
            debug(`Unexpected error ${err.message}`);
            return;
