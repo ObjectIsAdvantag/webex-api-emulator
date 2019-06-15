@@ -1,6 +1,6 @@
 {
   "name": "webex-api-emulator",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "Emulator of the Cisco Webex REST API",
   "main": "server.js",
   "scripts": {
@@ -11,7 +11,10 @@
     "base-64": "^0.1.0",
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
+    "remove-markdown": "^0.3.0",
     "request": "^2.88.0",
+    "save": "^2.4.0",
+    "showdown": "^1.9.0",
     "uuid": "^3.3.2"
   },
   "repository": {
