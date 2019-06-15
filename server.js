@@ -65,7 +65,7 @@ app.use("/memberships", membershipsAPI);
 const messagesAPI = require("./resources/messages");
 app.use("/messages", messagesAPI);
 const attachmentActionsAPI = require("./resources/attachmentActions");
-app.use("/attachmentActions", attachmentActionsAPI);
+app.use("/attachment/actions", attachmentActionsAPI);
 const webhooksAPI = require("./resources/webhooks");
 app.use("/webhooks", webhooksAPI);
 

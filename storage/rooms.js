@@ -37,7 +37,7 @@ RoomStorage.prototype.create = function (actor, title, type, cb) {
     this.data[room.id] = room;
 
     // Add creator to room members
-    this.datastore.memberships._add(actor.id, room.id, actor);
+    this.datastore.memberships._add(actor.id, room, actor);
 
     if (cb) {
         cb(null, room);

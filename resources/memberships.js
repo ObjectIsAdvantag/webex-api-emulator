@@ -59,7 +59,7 @@ router.post("/", function (req, res) {
     // Default values
     var isModerator = incoming.isModerator ? incoming.isModerator : false;
     if (isModerator) {
-        debug("WARNING: moderation is not currently supported by the emumlator, ignoring...");
+        debug("WARNING: moderation is not currently supported by the emulator, ignoring...");
         isModerator = false;
     }
 

@@ -154,7 +154,7 @@ router.get("/", function (req, res) {
    });
 });
 
-// Get message details
+// Get attachement action details
 router.get("/:id", function (req, res) {
    const db = req.app.locals.datastore;
    const actor = res.locals.person;
