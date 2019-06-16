@@ -82,7 +82,7 @@ app.get("/", function(req, res) {
         "code": "https://github.com/ObjectIsAdvantag/webex-api-emulator",
         "tokens" : "/tokens",
         "resources": [
-            "/people", "/rooms", "/memberships", "/messages", "/attachmentActions", "/webhooks"
+            "/people", "/rooms", "/memberships", "/messages", "/attachment/actions", "/webhooks"
         ]
     });
 });

@@ -46,16 +46,23 @@ The emulator loads with a [static list](./tokens.json) of Webex User and Bot acc
 All set! 
 Now invoke some of the Webex REST API Resources on default port http://localhost:3210, with token listed in your 'tokens.json' configuration file.
 
-   - GET  /people/me           shows your Webex account details
-   - POST /rooms               create a new room
-   - POST /rooms               create another room
-   - GET  /rooms               shows your rooms (2)
-   - POST /memberships         add a bot to the room
-   - POST /memberships         409 (conflict)
-   - GET  /memberships         show all your memberships
-   - GET  /memberships?room=   fetch memberships for you and your bot in current room
-   - POST /messages            create a new message
-   - POST /webhooks            register a new webhook pointing to a target URL on your local machine, or on the internet
+Here is a typical use case supported by the emulator. Check the postman collection below for ready-to-run use cases:
+
+```
+   - GET  /people/me              shows details of the Webex account
+   - POST /rooms                  create a new room
+   - POST /rooms                  create another room
+   - GET  /rooms                  shows 2 rooms
+   - POST /memberships            add a bot to the room
+   - POST /memberships            409 (conflict)
+   - GET  /memberships            show all your memberships
+   - GET  /memberships?room=      fetch memberships for you and your bot in current room
+   - POST /webhooks               register a new webhook pointing to a target URL on your local machine, or on the internet (under the bot identity)
+   - POST /messages               create a new message (under a user identity)
+   - POST /messages               create a new message with a card (under a bot identity)
+   - POST /attachment/actions     submit a card (under a user identity)
+   - GET  /attachment/actions/id  read the submitted data (under a bot identity)
+```
 
 
 ## Get the Postman collection
