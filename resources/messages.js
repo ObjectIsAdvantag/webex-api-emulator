@@ -200,7 +200,7 @@ router.get("/:id", function (req, res) {
         if (err) {
             switch (err.code) {
                 case "MESSAGE_NOT_FOUND":
-                    debug("message ${messageId} not found.")
+                    debug(`message ${messageId} not found.`)
                     // Note that this is the message returned by Webex, time of this writing
                     return sendError(res, 404, "Unable to delete message.");
                 case "ROOM_NOT_FOUND":

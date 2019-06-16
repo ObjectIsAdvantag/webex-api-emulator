@@ -78,8 +78,15 @@ router.post("/", function (req, res) {
 
       // Check there is a card for the message
       if (!message.attachments) {
-         debug("the message does not have attachements");
+         debug(`message with id: ${message.id} does not have attachements`);
          sendError(res, 400, "[TEMP] the message does not have attachements");
+         return;
+      }
+
+      // The author of a card cannot post an attachment
+      if (message.personId == actor.id) {
+         debug("The author of a card cannot post an attachment");
+         sendError(res, 400, "Unable to post attachment action: \"Author of a card cannot submit a cardAction on that card\"")
          return;
       }
 
@@ -104,80 +111,48 @@ router.post("/", function (req, res) {
 });
 
 
-// List messages
-router.get("/", function (req, res) {
-   const db = req.app.locals.datastore;
-   const actor = res.locals.person;
 
-   // Which room ?
-   const roomId = req.query.roomId;
-   if (!roomId) {
-      debug("Required String parameter 'roomId' is not present");
-      sendError(res, 400, "Required String parameter 'roomId' is not present");
-      return;
-   }
 
-   // Check the user is part of the room
-   db.rooms.find(actor, roomId, function (err, room) {
-      if (err) {
-         switch (err.code) {
-            case "ROOM_NOT_FOUND":
-               debug("room not found, answering 400 as per Webex API");
-               sendError(res, 400, "Expect base64 ID or UUID.");
-               return;
-            default:
-               debug(`unexpected error: ${err.message}`);
-               sendError(res, 500, "[EMULATOR] unexpected err");
-               return;
-         }
-      }
-
-      // It it's a bot in a Space, pick only the messages where the bot is mentionned
-      // + CHECK ?mentioned=me
-      // [NOT IMPLEMENTED]
-      if ((actor.type == "bot") && (room.type == "group")) {
-         debug(`bot in spaces is not implemented yet`);
-         sendError(res, 501, "[EMULATOR] bot in spaces is not implemented yet");
-         return;
-      }
-
-      // Fetch list of messages for current room
-      db.messages.listAllInRoom(actor, roomId, function (err, messages) {
-         if (err) {
-            debug(`Unexpected err ${err.message}`);
-            sendError(res, 500, "[EMULATOR] unexpected error")
-            return;
-         }
-
-         sendSuccess(res, 200, { "items": messages });
-      });
-   });
-});
-
-// Get attachement action details
+// Get Attachement Action details
 router.get("/:id", function (req, res) {
    const db = req.app.locals.datastore;
    const actor = res.locals.person;
 
-   const messageId = req.params.id;
-   db.messages.find(actor, messageId, function (err, message) {
+   const actionId = req.params.id;
+   db.attachmentActions.find(actor, actionId, function (err, action) {
       if (err) {
          switch (err.code) {
-            case "MESSAGE_NOT_FOUND":
-               debug("message ${messageId} not found.")
+            case "ACTION_NOT_FOUND":
+               debug(`action ${actionId} not found.`)
                // Note that this is the message returned by Webex, time of this writing
-               return sendError(res, 404, "Unable to delete message.");
-            case "ROOM_NOT_FOUND":
-            case "USER_NOT_IN_ROOM":
-               debug("Could not find a room with provided ID.")
-               return sendError(res, 404, "Could not find a room with provided ID.");
+               return sendError(res, 404, "Unable to get attachment action.");
             default:
-               debug(`unexpected error, cannot retrieve details for room: ${messageId}`);
+               debug(`unexpected error, cannot retrieve details for action: ${actionId}`);
                return sendError(res, 500, "[EMULATOR] unexpected error, cannot retrieve room details");
          }
       }
 
-      return sendSuccess(res, 200, message);
+      // Check the actor is the creator of the card
+      db.messages.find(actor, action.messageId, function (err, message) {
+         if (err) {
+            switch (err.code) {
+               case "MESSAGE_NOT_FOUND":
+                  debug(`message ${messageId} not found.`)
+                  return sendError(res, 404, "TEMP - Action not found.");
+               case "ROOM_NOT_FOUND":
+                  debug(`Could not find room for message: ${message.id}`);
+                  return sendError(res, 404, "TEMP - Action not found");
+               case "USER_NOT_IN_ROOM":
+                  debug(`Seems the actor is not a member of the room which holds message: ${action.messageId}`);
+                  return sendError(res, 404, "TEMP - Action not found");
+               default:
+                  debug(`unexpected error, cannot retrieve details for room: ${messageId}`);
+                  return sendError(res, 500, "[EMULATOR] unexpected error, cannot retrieve room details");
+            }
+         }
+
+         return sendSuccess(res, 200, action);
+      });
    });
 });
 

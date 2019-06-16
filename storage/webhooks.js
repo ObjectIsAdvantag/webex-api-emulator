@@ -29,7 +29,7 @@ WebhookStorage.prototype.create = function (actor, name, resource, event, target
 
     // Create webhook
     const now = new Date(Date.now()).toISOString();
-    var webhook = {
+    let webhook = {
         "id": base64.encode("ciscospark://em/ROOM/" + uuid()),
         "name": name,
         "targetUrl": targetUrl,
@@ -43,6 +43,10 @@ WebhookStorage.prototype.create = function (actor, name, resource, event, target
         "ownedBy": "creator",
         "status": "active",
         "created": now
+    }
+
+    if (!filter) {
+       delete webhook.filter;
     }
 
     // Store webhook

@@ -25,17 +25,17 @@ AttachmentActionStorage.prototype.create = function (actor, messageId, roomId, t
 
    // Create action
    const now = new Date(Date.now()).toISOString();
-   let action = {
+   const action = {
+      "id": base64.encode("ciscospark://em/ATTACHMENT_ACTION/" + uuid()),
       "type": type,
       "messageId": messageId,
       "inputs" : inputs,
-      "id": base64.encode("ciscospark://em/ATTACHMENT/" + uuid()),
       "personId": actor.id,
-      "roomId": roomId
+      "roomId": roomId,
+      "created": now
    }
 
    // Store message
-   action.created = now;
    this.data[action.id] = action;
 
    if (cb) {
