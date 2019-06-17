@@ -79,7 +79,7 @@ router.post("/", function (req, res) {
       // Check there is a card for the message
       if (!message.attachments) {
          debug(`message with id: ${message.id} does not have attachements`);
-         sendError(res, 400, "[TEMP] the message does not have attachements");
+         sendError(res, 400, "Unable to post attachment action: \"MessageId should point to an activity with cards\"");
          return;
       }
 
