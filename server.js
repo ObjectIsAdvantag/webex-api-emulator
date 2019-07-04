@@ -29,15 +29,15 @@ const Controller = require("./controller");
 const controller = new Controller(bus, datastore);
 
 
-app.set("x-powered-by", false); // to mimic Webex headers
-app.set("etag", false); // to mimic Webex headers
-// Middleware to mimic Webex HTTP headers
+// Mimic Webex HTTP headers
+app.set("x-powered-by", false);
+app.set("etag", false);
 app.use(function (req, res, next) {
-    res.setHeader("Cache-Control", "no-cache"); // to mimic Webex headers
+    res.setHeader("Cache-Control", "no-cache");
 
-    // New Trackingid
-    res.locals.trackingId = "EM_" + uuid();
-    res.setHeader("Trackingid", res.locals.trackingId);
+    // New TrackingID
+    res.locals.trackingId = "EM_" + uuid().toUpperCase();
+    res.setHeader("TrackingID", res.locals.trackingId);
 
     next();
 });
