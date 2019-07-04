@@ -2,10 +2,12 @@
 // Copyright (c) 2017 Cisco Systems
 // Licensed under the MIT License 
 //
+// Contributed by @jpjpjp
+//
 
 const assert = require("assert");
 
-var utils = {};
+const utils = {};
 
 /*
  * Transmits an error with the Webex format    
