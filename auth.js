@@ -27,14 +27,15 @@ authentication.middleware = function (req, res, next) {
     // Check authentication
     const auth = req.get("Authorization");
     if (!auth) {
-        return sendError(res, 401);
+      debug("No Authentication header");
+      return _sendAuthenticationError(res);
     }
 
     // Extract token
     const splitted = auth.match(/^Bearer\s([0-9a-zA-Z]*)$/);
     if (!splitted || (splitted.length != 2)) {
         debug("Authentication token does not match 'Bearer [0-9a-zA-Z]*' pattern");
-        return sendError(res, 401);
+        return _sendAuthenticationError(res);
     }
 
     // Retreive Person from token
@@ -42,13 +43,27 @@ authentication.middleware = function (req, res, next) {
     const account = tokens[token];
     if (!account) {
         debug("No account found for token: " + token);
-        return sendError(res, 401);
+        return _sendAuthenticationError(res);
     }
 
     // Add person to request context
     res.locals.person = account;
 
     next();
+}
+
+// Webex standard message
+// {
+//    "message": "The request requires a valid access token set in the Authorization request header.",
+//    "errors": [
+//        {
+//            "description": "The request requires a valid access token set in the Authorization request header."
+//        }
+//    ],
+//    "trackingId": "ROUTER_5D1DCAC2-63EF-01BB-007E-AD26DC3A007E"
+// }
+function _sendAuthenticationError(res) {
+   sendError(res, 401, "The request requires a valid access token set in the Authorization request header.");
 }
 
 

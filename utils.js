@@ -24,12 +24,12 @@ utils.sendError = function (res, statusCode, message, error) {
     assert.ok((statusCode), "no statusCode specified");
 
     if (!message) {
-        res.status(statusCode).send();
+        _send(res, statusCode);
         return;
     }
 
     if (!error) {
-        res.status(statusCode).send({
+        _send(res, statusCode, {
             "message": message,
             "errors": [
                 {
@@ -43,7 +43,7 @@ utils.sendError = function (res, statusCode, message, error) {
 
     switch (typeof error) {
         case "string":
-            res.status(statusCode).send({
+            _send(res, statusCode, {
                 "message": message,
                 "errors": [
                     {
@@ -55,7 +55,7 @@ utils.sendError = function (res, statusCode, message, error) {
             return;
 
         case "array":
-            res.status(statusCode).send({
+            _send(res, statusCode, {
                 "message": message,
                 "errors": error,
                 "trackingId": res.locals.trackingId
@@ -73,6 +73,17 @@ utils.sendError = function (res, statusCode, message, error) {
 utils.sendSuccess = function (res, statusCode, body) {
     assert.ok((res), "no response specified");
 
+    _send(res, statusCode, body);
+}
+
+// Send as new buffer to override express auto setting of Content-Type header
+// We set this manually since Webex does not include a space, and utf-8 is uppercased 
+// "Content-type": "application/json;charset=UTF-8"
+//
+// See this as an enhancement to Express default: res.status(statusCode).send(body);
+//
+function _send(res, statusCode, body) {
+
     if (!statusCode) {
         res.status(200).send();
         return;
@@ -83,7 +94,8 @@ utils.sendSuccess = function (res, statusCode, body) {
         return;
     }
 
-    res.status(statusCode).send(body);
+    res.setHeader("Content-Type", "application/json;charset=UTF-8");
+    res.status(statusCode).send(Buffer.from(JSON.stringify(body)));
 }
 
 
