@@ -204,6 +204,13 @@ router.get("/:id", function (req, res) {
 });
 
 
+// Update a membership
+router.put("/:id", function (req, res) {
+   debug("Update membership not implemented yet");
+   return sendError(res, 501, "[EMULATOR] Update membership is not implemented yet");
+});
+
+
 // Delete a membership
 router.delete("/:id", function (req, res) {
     const db = req.app.locals.datastore;
